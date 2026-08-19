@@ -27,7 +27,7 @@ O **FilaFácil UBS** é um sistema que visa tornar o processo de atendimento mai
 | ------------------------- | ------------------ |
 | **Front-end**             | React + Vite       |
 | **Back-end**              | Node.js + Express  |
-| **Banco de Dados**        | PostgreSQL         |
+| **Banco de Dados**        | Supabase           |
 | **ORM**                   | Prisma             |
 | **Tempo Real**            | Socket.IO          |
 | **Versionamento**         | Git & GitHub       |
@@ -35,7 +35,7 @@ O **FilaFácil UBS** é um sistema que visa tornar o processo de atendimento mai
 
 ### Justificativa
 
-A equipe possui conhecimento prévio em React, Node.js e Prisma, reduzindo a curva de aprendizado e permitindo maior produtividade. O React possibilita o desenvolvimento de uma interface intuitiva para recepcionistas e pacientes, enquanto o Node.js e o PostgreSQL oferecem uma base robusta para o gerenciamento das filas. O Socket.IO permitirá a atualização em tempo real da fila, e o Trello foi escolhido para organizar as atividades da equipe por meio de um fluxo simples e visual, atendendo aos requisitos da disciplina.
+A equipe possui conhecimento prévio em React, Node.js e Prisma, reduzindo a curva de aprendizado e permitindo maior produtividade. O React possibilita o desenvolvimento de uma interface intuitiva para recepcionistas e pacientes, enquanto o Node.js e o Supabase oferecem uma base robusta para o gerenciamento das filas. O Socket.IO permitirá a atualização em tempo real da fila, e o Jira foi escolhido para organizar as atividades da equipe por meio de um fluxo simples e visual, atendendo aos requisitos da disciplina.
 
 ---
 
@@ -80,12 +80,12 @@ A equipe possui conhecimento prévio em React, Node.js e Prisma, reduzindo a cur
 
 ## 📜 Acordo de Trabalho
 
-- **Canal oficial:** Grupo no WhatsApp
-- **Disponibilidade comum:** Segunda a sexta-feira, das 19h às 21h
+- **Canal oficial:** Grupo no Slack
+- **Disponibilidade comum:** Sábado e Domingo das 9h às 21h
 - **Prazo de resposta:** Até 24 horas
 - **Horário-limite da daily assíncrona (dias úteis sem aula):** 20h00
 - **Registro de decisões:** Todas as decisões importantes serão registradas em um documento no repositório GitHub e referenciadas nos cartões do Trello quando necessário
-- **Atualização do quadro:** O quadro do Trello será atualizado antes de cada aula e antes da publicação das dailies assíncronas
+- **Atualização do quadro:** O quadro do Jira será atualizado antes de cada aula e antes da publicação das dailies assíncronas
 - **Tratamento de bloqueios:** O integrante deverá informar o bloqueio imediatamente no grupo oficial. Caso não seja resolvido pela equipe, será registrado no Trello e levado ao professor
 
 ---
@@ -94,10 +94,9 @@ A equipe possui conhecimento prévio em React, Node.js e Prisma, reduzindo a cur
 
 | Finalidade              | Ferramenta   | Observação                                                                                                      |
 | ------------------------ | ------------ | --------------------------------------------------------------------------------------------------------------- |
-| Gestão do projeto        | Trello       | Link a ser adicionado após a criação do quadro                                                                  |
+| Gestão do projeto        | Jira         | https://andressasp68.atlassian.net/jira/software/projects/AC/boards/1/backlog?atlOrigin=eyJpIjoiZDRmNzc4NmRiYzc4NGI4YThlOTI0NTJjNTBhNjI2YTAiLCJwIjoiaiJ9                                                             |
 | Repositório/documentação | GitHub       | [FilaFácil](https://github.com/AndressaSilva0/FilaFacil)                                                       |
-| Comunicação              | WhatsApp     | Grupo da equipe                                                                                                 |
-| Convite ao professor     | Trello       | A confirmar após convite para **fernando.chagas@ifma.edu.br** com permissão para visualizar e comentar o quadro |
+| Comunicação              | Slack        | Grupo da equipe                                                                                                 |
 
 ---
 
@@ -144,9 +143,9 @@ Desenvolver um protótipo simples utilizando Socket.IO para validar a atualizaç
 
 ## 🏃 Sprint 1
 
-**Objetivo:** Validar a existência do problema com usuários reais, levantar os requisitos iniciais, definir a jornada crítica, configurar o ambiente de desenvolvimento, criar o quadro no Trello, organizar a documentação do projeto e validar a viabilidade técnica da atualização da fila em tempo real.
+**Objetivo:** Validar a existência do problema com usuários reais, levantar os requisitos iniciais, definir a jornada crítica, configurar o ambiente de desenvolvimento, criar o quadro no Jira, organizar a documentação do projeto e validar a viabilidade técnica da atualização da fila em tempo real.
 
-**Link do quadro:** *(a ser adicionado)*
+**Link do quadro:** https://andressasp68.atlassian.net/jira/software/projects/AC/boards/1/backlog?atlOrigin=eyJpIjoiZDRmNzc4NmRiYzc4NGI4YThlOTI0NTJjNTBhNjI2YTAiLCJwIjoiaiJ9
 
 **Principal bloqueio atual:** Obter acesso a profissionais e usuários de uma Unidade Básica de Saúde para validar as hipóteses levantadas pela equipe.
 
