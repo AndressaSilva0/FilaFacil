@@ -1,0 +1,614 @@
+/* ========================================================
+   CONSULTAR FILA MODERNO — FILAFÁCIL UBS
+   Layout e tabela refinados com base na nova imagem do Figma
+   ======================================================== */
+
+.queue-list-page {
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+/* ================= HEADER ================= */
+.queue-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.queue-title-badge-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.queue-pacientes-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #16a34a;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.queue-pacientes-badge .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #16a34a;
+}
+
+.queue-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+/* ================= FILTROS MODERNOS ================= */
+.queue-filters-container {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.queue-filters-top-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr auto;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.queue-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.queue-search-box svg {
+  position: absolute;
+  left: 0.85rem;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.queue-search-box input {
+  width: 100%;
+  height: 42px;
+  padding: 0 1rem 0 2.5rem;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+  font-size: 0.82rem;
+  color: #0f172a;
+  transition: all var(--transition-fast);
+}
+
+.queue-search-box input:focus {
+  outline: none;
+  background-color: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.queue-select-filter {
+  height: 42px;
+  padding: 0 2rem 0 0.85rem;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1e293b;
+  appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+}
+
+.queue-date-pill {
+  height: 42px;
+  padding: 0 0.85rem;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all var(--transition-fast);
+}
+
+.queue-date-pill:hover,
+.queue-date-pill:focus-within {
+  border-color: #3b82f6;
+  background-color: #ffffff;
+}
+
+.queue-date-input {
+  border: none;
+  background: transparent;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1e293b;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* Sub-linha de filtros de status */
+.queue-filters-bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.85rem;
+  border-top: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.status-filter-pills {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-label-prefix {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.06em;
+  margin-right: 0.25rem;
+}
+
+.status-tab-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.status-tab-pill:hover {
+  background-color: #f8fafc;
+}
+
+.status-tab-pill.active {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.status-tab-pill.active .pill-dot {
+  background-color: #ffffff;
+}
+
+.sync-status-text {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* ================= BANNER PRÓXIMO IMEDIATO ================= */
+.next-immediate-banner {
+  background-color: #ffffff;
+  border: 1.5px solid #bbf7d0;
+  border-radius: 16px;
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.08);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.next-immediate-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.next-immediate-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background-color: #065f46;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.62rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.next-immediate-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.next-immediate-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.badge-immediate {
+  background-color: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #16a34a;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.next-immediate-patient {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.next-immediate-code {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #1d4ed8;
+  line-height: 1;
+}
+
+.next-immediate-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.next-immediate-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.btn-reorder {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-reorder:hover {
+  background-color: #f8fafc;
+}
+
+.btn-call-immediate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  border-radius: 10px;
+  border: none;
+  background-color: #065f46;
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(6, 95, 70, 0.25);
+  transition: all var(--transition-fast);
+}
+
+.btn-call-immediate:hover {
+  background-color: #047857;
+  transform: translateY(-1px);
+}
+
+/* ================= TABELA COMPLETA ================= */
+.queue-table-card-wrapper {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.queue-interactive-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.queue-interactive-table thead th {
+  padding: 0.85rem 1.25rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background-color: #fafbfc;
+  border-bottom: 1px solid #f1f5f9;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.queue-interactive-table tbody tr {
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color var(--transition-fast);
+}
+
+.queue-interactive-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.queue-interactive-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.queue-interactive-table tbody td {
+  padding: 0.85rem 1.25rem;
+  font-size: 0.85rem;
+  vertical-align: middle;
+}
+
+/* Célula Senha com Indicador */
+.ticket-code-modern-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.ticket-side-indicator {
+  width: 4px;
+  height: 38px;
+  border-radius: 2px;
+}
+
+.ticket-side-indicator.green { background-color: #16a34a; }
+.ticket-side-indicator.blue { background-color: #2563eb; }
+.ticket-side-indicator.red { background-color: #dc2626; }
+.ticket-side-indicator.gray { background-color: #94a3b8; }
+
+.ticket-code-text-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.ticket-code-number {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.ticket-code-priority-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.ticket-code-priority-label.green { color: #16a34a; }
+.ticket-code-priority-label.blue { color: #2563eb; }
+.ticket-code-priority-label.red { color: #dc2626; }
+.ticket-code-priority-label.gray { color: #64748b; }
+
+/* Especialidade Pill */
+.specialty-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 8px;
+  background-color: #f1f5f9;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+}
+
+/* Chegada com tempo de espera */
+.arrival-waiting-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.arrival-time-bold {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.arrival-waiting-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin-top: 0.1rem;
+}
+
+.arrival-waiting-tag.red { color: #dc2626; }
+.arrival-waiting-tag.green { color: #16a34a; }
+.arrival-waiting-tag.gray { color: #64748b; }
+
+/* Status Badges */
+.status-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-pill-badge.aguardando {
+  background-color: #fefce8;
+  border: 1px solid #fef08a;
+  color: #a16207;
+}
+
+.status-pill-badge.atendimento {
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+}
+
+.status-pill-badge.atendido {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #16a34a;
+}
+
+.status-pill-badge.ausente {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+}
+
+/* Botões de Ação na Tabela */
+.table-action-btn-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #334155;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.table-action-btn-circle:hover {
+  background-color: #f1f5f9;
+}
+
+.table-action-btn-circle.green {
+  background-color: #f0fdf4;
+  border-color: #86efac;
+  color: #16a34a;
+}
+
+.table-action-btn-circle.green:hover {
+  background-color: #dcfce7;
+}
+
+.table-action-btn-circle.blue {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.table-action-btn-circle.blue:hover {
+  background-color: #dbeafe;
+}
+
+/* Rodapé Tabela */
+.queue-table-footer-row {
+  padding: 0.85rem 1.25rem;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #64748b;
+  background-color: #fafbfc;
+}
+
+/* ================= CARD TV DA RECEPÇÃO CONECTADO ================= */
+.tv-connected-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.tv-connected-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.tv-connected-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background-color: #eff6ff;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tv-connected-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.tv-connected-subtitle {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 0.15rem;
+}
+
+.tv-connected-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.btn-sound-test {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  border: none;
+  background-color: #0f2d59;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(15, 45, 89, 0.25);
+  transition: all var(--transition-fast);
+}
+
+.btn-sound-test:hover {
+  background-color: #1e3a8a;
+  transform: translateY(-1px);
+}

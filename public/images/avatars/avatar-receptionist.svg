@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="bgGradRecep" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#1d4ed8" />
+    </linearGradient>
+    <linearGradient id="uniformGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e40af" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+    <linearGradient id="skinGradRecep" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fed7aa" />
+      <stop offset="100%" stop-color="#fdba74" />
+    </linearGradient>
+  </defs>
+
+  <!-- Fundo Circular Azul UBS -->
+  <circle cx="100" cy="100" r="100" fill="url(#bgGradRecep)" />
+
+  <!-- Camisa / Uniforme de Recepção -->
+  <path d="M40 200 C40 145, 65 132, 100 132 C135 132, 160 145, 160 200 Z" fill="url(#uniformGrad)" />
+  <!-- Gola Branca Polo -->
+  <path d="M85 132 L100 152 L115 132" fill="#ffffff" />
+  <path d="M80 132 L100 154 L120 132" stroke="#cbd5e1" stroke-width="2" fill="none" />
+
+  <!-- Crachá SUS Pendurado -->
+  <rect x="94" y="152" width="12" height="18" rx="2" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5" />
+  <rect x="96" y="156" width="8" height="3" fill="#2563eb" />
+  <line x1="100" y1="134" x2="100" y2="152" stroke="#60a5fa" stroke-width="2" />
+
+  <!-- Pescoço -->
+  <rect x="88" y="112" width="24" height="24" rx="6" fill="#fed7aa" />
+
+  <!-- Cabeça / Rosto -->
+  <circle cx="100" cy="82" r="38" fill="#fed7aa" />
+
+  <!-- Cabelo Moderno -->
+  <path d="M62 76 C62 44, 82 34, 100 34 C122 34, 138 46, 138 76 C136 52, 122 46, 100 46 C78 46, 64 54, 62 76 Z" fill="#1e1b4b" />
+  <path d="M62 76 Q60 90 64 96 Q68 90 68 76 Z" fill="#1e1b4b" />
+  <path d="M138 76 Q140 90 136 96 Q132 90 132 76 Z" fill="#1e1b4b" />
+
+  <!-- Olhos expressivos -->
+  <ellipse cx="88" cy="80" rx="3.5" ry="4.5" fill="#1e293b" />
+  <ellipse cx="112" cy="80" rx="3.5" ry="4.5" fill="#1e293b" />
+  <circle cx="89" cy="78.5" r="1.2" fill="#ffffff" />
+  <circle cx="113" cy="78.5" r="1.2" fill="#ffffff" />
+
+  <!-- Sobrancelhas -->
+  <path d="M82 72 Q88 68 94 72" stroke="#1e1b4b" stroke-width="2" fill="none" stroke-linecap="round" />
+  <path d="M106 72 Q112 68 118 72" stroke="#1e1b4b" stroke-width="2" fill="none" stroke-linecap="round" />
+
+  <!-- Sorriso -->
+  <path d="M90 94 Q100 105 110 94" stroke="#9a3412" stroke-width="3" fill="none" stroke-linecap="round" />
+
+  <!-- Headset / Fone de Atendimento de Recepção -->
+  <path d="M62 82 C62 50, 75 42, 100 42 C125 42, 138 50, 138 82" stroke="#64748b" stroke-width="3.5" fill="none" stroke-linecap="round" />
+  <rect x="57" y="74" width="7" height="18" rx="3" fill="#334155" />
+  <rect x="136" y="74" width="7" height="18" rx="3" fill="#334155" />
+  <!-- Microfone do Headset -->
+  <path d="M60 84 Q62 102 82 100" stroke="#334155" stroke-width="2.5" fill="none" stroke-linecap="round" />
+  <circle cx="83" cy="100" r="3" fill="#0f172a" />
+</svg>

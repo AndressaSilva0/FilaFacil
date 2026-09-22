@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="bgGradNurse" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+    <linearGradient id="scrubsGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="skinGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fcd34d" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+  </defs>
+
+  <!-- Fundo Circular -->
+  <circle cx="100" cy="100" r="100" fill="url(#bgGradNurse)" />
+
+  <!-- Jaleco / Scrubs Verde Saúde -->
+  <path d="M40 200 C40 145, 65 130, 100 130 C135 130, 160 145, 160 200 Z" fill="url(#scrubsGrad)" />
+  <!-- Gola em V dos Scrubs -->
+  <polygon points="100,165 82,130 118,130" fill="#fcd34d" />
+  <path d="M82 130 L100 168 L118 130" stroke="#047857" stroke-width="4" fill="none" />
+
+  <!-- Estetoscópio -->
+  <path d="M72 135 C65 155, 75 180, 100 185 C125 180, 135 155, 128 135" stroke="#334155" stroke-width="5" fill="none" stroke-linecap="round" />
+  <circle cx="100" cy="186" r="8" fill="#94a3b8" stroke="#334155" stroke-width="3" />
+
+  <!-- Pescoço -->
+  <rect x="88" y="112" width="24" height="24" rx="6" fill="#fcd34d" />
+
+  <!-- Cabeça / Rosto -->
+  <circle cx="100" cy="82" r="38" fill="#fcd34d" />
+
+  <!-- Cabelo Enfermeira -->
+  <path d="M62 80 C60 45, 80 32, 100 32 C120 32, 140 45, 138 80 C132 55, 120 48, 100 48 C80 48, 68 55, 62 80 Z" fill="#451a03" />
+  <!-- Coque de cabelo no topo -->
+  <circle cx="100" cy="30" r="16" fill="#451a03" />
+
+  <!-- Olhos simpáticos -->
+  <ellipse cx="88" cy="80" rx="3.5" ry="4.5" fill="#1e293b" />
+  <ellipse cx="112" cy="80" rx="3.5" ry="4.5" fill="#1e293b" />
+  <circle cx="89" cy="78.5" r="1.2" fill="#ffffff" />
+  <circle cx="113" cy="78.5" r="1.2" fill="#ffffff" />
+
+  <!-- Sorriso acolhedor -->
+  <path d="M90 94 Q100 105 110 94" stroke="#78350f" stroke-width="3" fill="none" stroke-linecap="round" />
+
+  <!-- Cruz Médica no Uniforme -->
+  <g transform="translate(132, 160) scale(0.65)">
+    <rect x="-4" y="-12" width="8" height="24" rx="2" fill="#ffffff" />
+    <rect x="-12" y="-4" width="24" height="8" rx="2" fill="#ffffff" />
+  </g>
+</svg>

@@ -1,0 +1,497 @@
+/* ========================================================
+   PAINEL DE CHAMADA TV — FILAFÁCIL UBS (TEMA ESCURO)
+   Exibição em Monitores / TV de Sala de Espera
+   ======================================================== */
+
+.tv-panel-container {
+  min-height: 100vh;
+  background: radial-gradient(circle at 50% 10%, #0f2744 0%, #071526 100%);
+  color: #ffffff;
+  font-family: var(--font-sans);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.5rem 2.5rem;
+  box-sizing: border-box;
+}
+
+/* ================= HEADER TV ================= */
+.tv-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tv-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.tv-unit-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.7);
+  padding-left: 1.5rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tv-header-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.tv-clock-box {
+  text-align: right;
+}
+
+.tv-clock-time {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #ffffff;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.tv-clock-date {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 0.2rem;
+}
+
+.tv-sound-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.tv-sound-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+/* ================= GRID PRINCIPAL ================= */
+.tv-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 2rem;
+  margin: 1.5rem 0;
+  flex: 1;
+  align-items: stretch;
+}
+
+/* ================= CARD CHAMADA ATUAL (BRANCO) ================= */
+.tv-current-call-card {
+  background-color: #ffffff;
+  border-radius: 24px;
+  padding: 2.25rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  color: var(--text-main);
+  position: relative;
+  overflow: hidden;
+}
+
+.tv-card-top-badges {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tv-badge-current {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #f0fdf4;
+  border: 1.5px solid #86efac;
+  color: #16a34a;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tv-pulse-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: #16a34a;
+  animation: tv-pulse 1.8s infinite;
+}
+
+@keyframes tv-pulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7); }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(22, 163, 74, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+}
+
+.tv-badge-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background-color: #eff6ff;
+  color: var(--color-blue-ubs);
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.tv-type-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--color-blue-ubs);
+}
+
+/* Área Central com Senha Gigante */
+.tv-ticket-center {
+  text-align: center;
+  padding: 1.5rem 0;
+}
+
+.tv-ticket-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.tv-ticket-code {
+  font-size: 7.5rem;
+  font-weight: 900;
+  color: #0f2d59;
+  letter-spacing: 0.03em;
+  line-height: 1;
+  margin-bottom: 1.25rem;
+}
+
+.tv-room-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #f0f7ff;
+  border: 1.5px solid #bfdbfe;
+  padding: 0.85rem 2rem;
+  border-radius: 14px;
+  color: #1e40af;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+/* Informações do Paciente */
+.tv-patient-section {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 1.25rem;
+  margin-top: 1rem;
+}
+
+.tv-patient-meta-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.tv-patient-name {
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.tv-specialty-info {
+  text-align: right;
+}
+
+.tv-specialty-name {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #10b981;
+}
+
+.tv-doctor-subtext {
+  font-size: 0.88rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+/* Barra de Alerta / Instrução ao Paciente */
+.tv-instruction-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: #0b1f38;
+  color: #e2e8f0;
+  padding: 0.9rem 1.25rem;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  margin-top: 1.25rem;
+}
+
+.tv-instruction-icon {
+  color: #60a5fa;
+  flex-shrink: 0;
+}
+
+/* ================= COLUNA LATERAL — PRÓXIMAS SENHAS ================= */
+.tv-next-queue-box {
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.tv-next-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.tv-next-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.tv-next-title-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #60a5fa;
+}
+
+.tv-next-title-text {
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #ffffff;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.tv-next-count-badge {
+  background-color: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #34d399;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* Lista de cards das próximas senhas */
+.tv-next-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  flex: 1;
+}
+
+.tv-next-item {
+  background-color: #ffffff;
+  border-radius: 14px;
+  padding: 0.9rem 1.15rem;
+  color: var(--text-main);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-left: 5px solid #2563eb;
+  transition: transform var(--transition-fast);
+}
+
+.tv-next-item.preferencial {
+  border-left-color: #f59e0b;
+}
+
+.tv-next-item.exames {
+  border-left-color: #10b981;
+}
+
+.tv-next-item.urgente {
+  border-left-color: #ef4444;
+}
+
+.tv-next-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+}
+
+.tv-next-item-code-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tv-next-item-code {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #1e3a8a;
+  line-height: 1;
+}
+
+.tv-tag-priority {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tv-tag-priority.preferencial {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.tv-tag-priority.normal {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.tv-tag-priority.exames {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.tv-tag-priority.urgente {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.tv-tag-status {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #b45309;
+  background-color: #fffbeb;
+  border: 1px solid #fef3c7;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+}
+
+.tv-next-item-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tv-next-item-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+.tv-next-footer-note {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+  margin-top: 1rem;
+  line-height: 1.35;
+}
+
+/* ================= FOOTER / INFORMATIVO LEGAL ================= */
+.tv-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tv-legal-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.4;
+  flex: 1;
+}
+
+.tv-legal-badge {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #34d399;
+  font-weight: 700;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.tv-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  padding: 0.65rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.tv-back-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: translateX(-2px);
+}
+
+/* ================= RESPONSIVO TV ================= */
+@media (max-width: 1024px) {
+  .tv-main-grid {
+    grid-template-columns: 1fr;
+  }
+  .tv-ticket-code {
+    font-size: 5rem;
+  }
+}

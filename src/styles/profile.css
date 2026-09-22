@@ -1,0 +1,603 @@
+/* ========================================================
+   PÁGINA DE PERFIL DO USUÁRIO — FILAFÁCIL UBS
+   Edição de Perfil, Foto e Dados Cadastrais
+   ======================================================== */
+
+.profile-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-bottom: 3rem;
+  font-family: var(--font-sans);
+}
+
+/* ================= HEADER DO PERFIL ================= */
+.profile-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.profile-breadcrumb-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.35rem;
+}
+
+.profile-badge-active {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #16a34a;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.profile-badge-active .pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #16a34a;
+  animation: pulse 2s infinite;
+}
+
+.profile-page-title {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: var(--color-blue-deep);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.profile-page-subtitle {
+  font-size: 0.88rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+/* ================= GRID PRINCIPAL ================= */
+.profile-main-grid {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 1.75rem;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .profile-main-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ================= COLUNA ESQUERDA (FOTO & CRACHÁ) ================= */
+.profile-sidebar-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.profile-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.profile-card-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 0.25rem;
+}
+
+.profile-card-subtitle {
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-bottom: 1.25rem;
+}
+
+/* Avatar Preview Grande */
+.profile-photo-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.profile-avatar-large-wrap {
+  position: relative;
+  width: 124px;
+  height: 124px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #10b981);
+  padding: 3px;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.2);
+  margin-bottom: 1rem;
+}
+
+.profile-avatar-large-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2px solid #ffffff;
+}
+
+.profile-avatar-large-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-avatar-camera-btn {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background-color: #2563eb;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all var(--transition-fast);
+}
+
+.profile-avatar-camera-btn:hover {
+  background-color: #1d4ed8;
+  transform: scale(1.08);
+}
+
+.profile-photo-actions-row {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.btn-upload-photo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 8px;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-upload-photo:hover {
+  background-color: #dbeafe;
+}
+
+.btn-remove-photo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #ef4444;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-remove-photo:hover {
+  background-color: #fee2e2;
+}
+
+/* Presets de Avatar */
+.profile-presets-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #64748b;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  text-align: left;
+  width: 100%;
+}
+
+.profile-presets-row {
+  display: flex;
+  gap: 0.65rem;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.profile-preset-option {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid #e2e8f0;
+  padding: 2px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  background-color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.profile-preset-option:hover {
+  transform: scale(1.12);
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.28);
+}
+
+.profile-preset-option.active {
+  border-color: #2563eb;
+  transform: scale(1.08);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+}
+
+.profile-preset-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* ================= CRACHÁ FUNCIONAL SUS (DIGITAL BADGE) ================= */
+.profile-badge-card {
+  background: linear-gradient(145deg, #0f2744 0%, #1e3a8a 100%);
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(15, 39, 68, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.profile-badge-card::after {
+  content: '';
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.15);
+  filter: blur(25px);
+  pointer-events: none;
+}
+
+.badge-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  padding-bottom: 0.75rem;
+}
+
+.badge-sus-title {
+  display: flex;
+  flex-direction: column;
+}
+
+.badge-sus-ministry {
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+}
+
+.badge-sus-app {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.badge-sus-tag {
+  background-color: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  letter-spacing: 0.04em;
+}
+
+.badge-user-info-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.badge-avatar-mini {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  overflow: hidden;
+  background-color: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.badge-avatar-mini img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.badge-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.badge-role {
+  font-size: 0.75rem;
+  color: #93c5fd;
+  font-weight: 600;
+  margin-top: 0.15rem;
+}
+
+.badge-unit {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 0.1rem;
+}
+
+.badge-metadata-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.badge-meta-item .label {
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  display: block;
+}
+
+.badge-meta-item .value {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-top: 0.1rem;
+  display: block;
+}
+
+/* ================= COLUNA DIREITA (FORMULÁRIOS) ================= */
+.profile-content-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.profile-section-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.profile-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.section-icon-wrap {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background-color: #eff6ff;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.section-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.section-subtitle {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+/* Grid de Formulários */
+.profile-form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .profile-form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.profile-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1.15rem;
+}
+
+.profile-field-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #475569;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.profile-field-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #059669;
+  background-color: #d1fae5;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+  text-transform: none;
+}
+
+.profile-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.profile-input-icon {
+  position: absolute;
+  left: 0.9rem;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.profile-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 1rem 0 2.5rem;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  font-size: 0.88rem;
+  color: #0f172a;
+  font-family: inherit;
+  transition: all var(--transition-fast);
+}
+
+.profile-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.profile-select {
+  width: 100%;
+  height: 44px;
+  padding: 0 2.2rem 0 2.5rem;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #0f172a;
+  font-family: inherit;
+  appearance: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.profile-select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.profile-select-arrow {
+  position: absolute;
+  right: 0.9rem;
+  color: #64748b;
+  pointer-events: none;
+}
+
+/* Botões de Ação do Perfil */
+.profile-actions-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.btn-profile-cancel {
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  color: #475569;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-profile-cancel:hover {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.btn-profile-save {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.75rem 1.75rem;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+  transition: all var(--transition-fast);
+}
+
+.btn-profile-save:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
+}
