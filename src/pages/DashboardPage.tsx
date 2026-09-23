@@ -18,6 +18,8 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import type { InternalScreen } from '../components/AppLayout';
+import { soundService } from '../services/soundService';
+import { callBroadcastService } from '../services/callBroadcastService';
 import '../styles/dashboard.css';
 
 interface DashboardPageProps {
@@ -116,28 +118,26 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
     return () => clearInterval(interval);
   }, []);
 
-  const triggerCallAudio = () => {
-    try {
-      const audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.frequency.setValueAtTime(659.25, audioCtx.currentTime); // E5
-      osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.18); // A5
-      gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.9);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.9);
-    } catch {
-      // Audio fallback
-    }
-  };
-
-  const handleCallTicket = (code: string, name: string) => {
-    triggerCallAudio();
-    setToastMsg(`Chamando senha ${code} (${name}) para o Consultório 02!`);
-    setTimeout(() => setToastMsg(null), 3500);
+  const handleCallTicket = (
+    code: string,
+    name: string,
+    room = 'Consultório 02',
+    priority = 'Normal'
+  ) => {
+    soundService.announceCall({
+      code,
+      patientName: name,
+      room,
+      priority,
+    });
+    callBroadcastService.emitCall({
+      code,
+      patientName: name,
+      room,
+      priority,
+    });
+    setToastMsg(`Chamando senha ${code} (${name}) para ${room}!`);
+    setTimeout(() => setToastMsg(null), 4000);
   };
 
   const filteredItems = mockModernQueue.filter((item) => {
@@ -402,7 +402,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     <td style={{ textAlign: 'right' }}>
                       <button
                         className="btn-table-call"
-                        onClick={() => handleCallTicket(item.code, item.name)}
+                        onClick={() => handleCallTicket(item.code, item.name, item.room, item.classification)}
                       >
                         <Volume2 size={13} />
                         Chamar
@@ -470,7 +470,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
 
             <button
               className="btn-call-next-emerald"
-              onClick={() => handleCallTicket('A123', 'Benedita Souza Costa')}
+              onClick={() => handleCallTicket('A123', 'Benedita Souza Costa', 'Sala 02 • Térreo', 'Prioridade Legal')}
             >
               <Volume2 size={18} />
               Chamar Próximo (Voz &amp; TV)
@@ -479,7 +479,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
             <div className="next-card-sub-actions">
               <button
                 className="btn-sub-action repeat"
-                onClick={() => handleCallTicket('A123', 'Benedita Souza Costa')}
+                onClick={() => handleCallTicket('A123', 'Benedita Souza Costa', 'Sala 02 • Térreo', 'Prioridade Legal')}
               >
                 <RotateCcw size={14} />
                 Repetir

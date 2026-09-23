@@ -18,6 +18,8 @@ import {
   Smile,
 } from 'lucide-react';
 import type { InternalScreen } from '../components/AppLayout';
+import { soundService } from '../services/soundService';
+import { callBroadcastService } from '../services/callBroadcastService';
 import '../styles/queue.css';
 
 interface QueueListPageProps {
@@ -182,26 +184,41 @@ export const QueueListPage: React.FC<QueueListPageProps> = ({ onNavigate }) => {
   const [queueDate, setQueueDate] = useState('2026-10-24');
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  const triggerChime = () => {
-    try {
-      const audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-      osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.16); // A5
-      gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.85);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.85);
-    } catch {
-      // Audio fallback
-    }
+  const handleCallPatient = (params: {
+    code: string;
+    name: string;
+    room?: string;
+    priority?: string;
+    isRecall?: boolean;
+  }) => {
+    const callData = {
+      code: params.code,
+      patientName: params.name,
+      room: params.room || 'Consultório 01',
+      priority: params.priority || 'Normal',
+    };
+    soundService.announceCall(callData);
+    callBroadcastService.emitCall(callData);
+    setToastMsg(
+      `${params.isRecall ? 'Rechamando' : 'Chamando'} ${params.code} (${params.name}) para ${params.room || 'atendimento'}!`
+    );
+    setTimeout(() => setToastMsg(null), 4000);
+  };
+
+  const handleTestSound = () => {
+    const testData = {
+      code: 'TESTE-01',
+      patientName: 'Sinal sonoro de teste',
+      room: 'Recepção Principal',
+      priority: 'Normal',
+    };
+    soundService.announceCall(testData);
+    callBroadcastService.emitCall(testData);
+    setToastMsg('Sinal sonoro e voz de teste emitidos com sucesso!');
+    setTimeout(() => setToastMsg(null), 4000);
   };
 
   const showToast = (msg: string) => {
-    triggerChime();
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 3000);
   };
@@ -426,7 +443,14 @@ export const QueueListPage: React.FC<QueueListPageProps> = ({ onNavigate }) => {
 
           <button
             className="btn-call-immediate"
-            onClick={() => showToast('Chamando senha A123 — Maria Aparecida dos Santos para o Consultório 01!')}
+            onClick={() =>
+              handleCallPatient({
+                code: 'A123',
+                name: 'Maria Aparecida dos Santos',
+                room: 'Consultório 01',
+                priority: 'Prioritário',
+              })
+            }
           >
             <Volume2 size={16} />
             Chamar Próximo (A123)
@@ -530,7 +554,14 @@ export const QueueListPage: React.FC<QueueListPageProps> = ({ onNavigate }) => {
                       <button
                         className="table-action-btn-circle green"
                         title="Chamar paciente"
-                        onClick={() => showToast(`Chamando ${item.code} (${item.name})!`)}
+                        onClick={() =>
+                          handleCallPatient({
+                            code: item.code,
+                            name: item.name,
+                            room: item.room,
+                            priority: item.priorityTag,
+                          })
+                        }
                       >
                         <Volume2 size={15} />
                       </button>
@@ -569,7 +600,15 @@ export const QueueListPage: React.FC<QueueListPageProps> = ({ onNavigate }) => {
                       <button
                         className="table-action-btn-circle"
                         title="Rechamar paciente ausente"
-                        onClick={() => showToast(`Rechamando ${item.code} (${item.name})!`)}
+                        onClick={() =>
+                          handleCallPatient({
+                            code: item.code,
+                            name: item.name,
+                            room: item.room,
+                            priority: item.priorityTag,
+                            isRecall: true,
+                          })
+                        }
                       >
                         <RotateCcw size={14} />
                       </button>
@@ -627,7 +666,7 @@ export const QueueListPage: React.FC<QueueListPageProps> = ({ onNavigate }) => {
             Abrir Painel em Tela Cheia
           </button>
 
-          <button className="btn-sound-test" onClick={() => showToast('Sinal sonoro de teste emitido nos alto-falantes da recepção!')}>
+          <button className="btn-sound-test" onClick={handleTestSound}>
             <Volume2 size={16} />
             Testar Sinal Sonoro
           </button>

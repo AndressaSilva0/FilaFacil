@@ -9,9 +9,12 @@ import {
   DoorOpen,
   Maximize2,
   Minimize2,
+  Sparkles,
 } from 'lucide-react';
 import Logo from '../components/Logo';
 import type { InternalScreen } from '../components/AppLayout';
+import { soundService } from '../services/soundService';
+import { callBroadcastService } from '../services/callBroadcastService';
 import '../styles/tv-panel.css';
 
 interface TVPanelPageProps {
@@ -67,6 +70,58 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
   const [currentDate, setCurrentDate] = useState('');
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isFlashing, setIsFlashing] = useState(false);
+  const [audioUnlocked, setAudioUnlocked] = useState(false);
+
+  const [currentCall, setCurrentCall] = useState({
+    code: 'A123',
+    priorityType: 'normal',
+    priorityLabel: 'Atendimento Convencional (Normal)',
+    room: 'Sala 02 • Consultório Médico',
+    patientName: 'José Maria da Silva',
+    specialty: 'Clínico Geral',
+    doctor: 'Dra. Mariana Vasconcellos • Triagem: 08:30',
+  });
+
+  // Escuta chamadas disparadas em tempo real de qualquer tela ou aba (Dashboard, Fila, etc.)
+  useEffect(() => {
+    const unsubscribe = callBroadcastService.onCall((callData) => {
+      const isPref = (callData.priority || '').toLowerCase().includes('pref') ||
+        (callData.priority || '').toLowerCase().includes('prior');
+
+      setCurrentCall({
+        code: callData.code,
+        patientName: callData.patientName,
+        room: callData.room,
+        priorityLabel: callData.priority || 'Atendimento Convencional (Normal)',
+        priorityType: isPref ? 'preferencial' : 'normal',
+        specialty: 'Atendimento Clínico',
+        doctor: 'Consultório Designado',
+      });
+
+      setIsFlashing(true);
+      setTimeout(() => setIsFlashing(false), 2500);
+
+      // Reproduz o áudio na TV se habilitado
+      if (soundEnabled) {
+        soundService.announceCall({
+          code: callData.code,
+          patientName: callData.patientName,
+          room: callData.room,
+          priority: callData.priority,
+        });
+      }
+    });
+
+    return unsubscribe;
+  }, [soundEnabled]);
+
+  // Desbloqueia áudio caso o navegador exija interação prévia
+  const handleUnlockAudio = async () => {
+    await soundService.unlockAudio();
+    setAudioUnlocked(true);
+    await soundService.playChime();
+  };
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -119,27 +174,88 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
     return () => clearInterval(interval);
   }, []);
 
-  const triggerChime = () => {
-    // Som sintético do navegador via Web Audio API
-    try {
-      const audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-      osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.15); // A5
-      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.8);
-    } catch {
-      // AudioContext não suportado
-    }
+  // Ouvir a chamada atual com voz e sino
+  const handleAnnounceCurrent = async () => {
+    setSoundEnabled(true);
+    await soundService.unlockAudio();
+    setIsFlashing(true);
+    setTimeout(() => setIsFlashing(false), 2500);
+
+    soundService.announceCall({
+      code: currentCall.code,
+      patientName: currentCall.patientName,
+      room: currentCall.room,
+      priority: currentCall.priorityLabel,
+    });
+  };
+
+  // Teste de som específico do painel de TV
+  const handleTestAudio = async () => {
+    setSoundEnabled(true);
+    await soundService.unlockAudio();
+    soundService.announceCall({
+      code: 'TESTE-TV',
+      patientName: 'Sistema de Áudio do Painel de TV',
+      room: 'Sala de Espera Principal',
+      priority: 'Normal',
+    });
+  };
+
+  // Chamar uma senha da lista lateral no painel
+  const handleCallTicket = async (ticket: NextTicket) => {
+    setSoundEnabled(true);
+    await soundService.unlockAudio();
+    setIsFlashing(true);
+    setTimeout(() => setIsFlashing(false), 2500);
+
+    const detailsParts = ticket.details.split('•');
+    const specialty = detailsParts[0]?.trim() || 'Consulta';
+    const room = detailsParts[1]?.trim() || 'Consultório';
+
+    const newCall = {
+      code: ticket.code,
+      priorityType: ticket.priorityType,
+      priorityLabel: ticket.priorityLabel === 'PREFERENCIAL' ? 'Atendimento Prioritário' : 'Atendimento Convencional (Normal)',
+      room,
+      patientName: ticket.name,
+      specialty,
+      doctor: 'Dr(a). em Atendimento',
+    };
+
+    setCurrentCall(newCall);
+
+    soundService.announceCall({
+      code: ticket.code,
+      patientName: ticket.name,
+      room,
+      priority: ticket.priorityLabel,
+    });
+
+    callBroadcastService.emitCall({
+      code: ticket.code,
+      patientName: ticket.name,
+      room,
+      priority: ticket.priorityLabel,
+    });
   };
 
   return (
     <div className="tv-panel-container">
+      {/* Banner de permissão de áudio para navegadores com autoplay restrito */}
+      {!audioUnlocked && (
+        <div
+          className="tv-audio-unlock-banner"
+          onClick={handleUnlockAudio}
+          title="Clique para garantir liberação total do áudio e som do painel"
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <Volume2 size={20} />
+            <strong>Painel de TV Interativo: Clique aqui para ativar o áudio e testar o sino hospitalar</strong>
+          </div>
+          <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>Ativar Som ➜</span>
+        </div>
+      )}
+
       {/* ================= HEADER TV ================= */}
       <header className="tv-header">
         <div className="tv-header-left">
@@ -157,6 +273,16 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
             <div className="tv-clock-date">{currentDate || '17 DE SETEMBRO DE 2026'}</div>
           </div>
 
+          {/* Botão de teste rápido de som no cabeçalho da TV */}
+          <button
+            className="tv-test-audio-btn"
+            onClick={handleTestAudio}
+            title="Tocar sino e anúncio de teste no painel de TV"
+          >
+            <Volume2 size={16} />
+            <span>Testar Som da TV</span>
+          </button>
+
           <button
             className="tv-sound-btn"
             onClick={toggleFullscreen}
@@ -167,40 +293,71 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
 
           <button
             className="tv-sound-btn"
-            onClick={() => {
-              setSoundEnabled(!soundEnabled);
-              if (!soundEnabled) triggerChime();
+            onClick={async () => {
+              const nextState = !soundEnabled;
+              setSoundEnabled(nextState);
+              if (nextState) {
+                await soundService.unlockAudio();
+                await soundService.playChime();
+              }
             }}
-            title={soundEnabled ? 'Áudio ativado' : 'Áudio mudo'}
+            title={soundEnabled ? 'Áudio ativado (Clique para mutar)' : 'Áudio mudo (Clique para reativar)'}
+            style={{
+              backgroundColor: soundEnabled ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)',
+              borderColor: soundEnabled ? '#10b981' : '#ef4444',
+            }}
           >
-            {soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
+            {soundEnabled ? <Volume2 size={20} color="#34d399" /> : <VolumeX size={20} color="#f87171" />}
           </button>
         </div>
       </header>
 
       {/* ================= GRID PRINCIPAL ================= */}
       <main className="tv-main-grid">
-        {/* Card Chamada Atual (Branco) */}
-        <section className="tv-current-call-card">
+        {/* Card Chamada Atual (Branco com flash glow ao chamar) */}
+        <section className={`tv-current-call-card ${isFlashing ? 'calling-flash' : ''}`}>
           <div className="tv-card-top-badges">
-            <div className="tv-badge-current">
-              <span className="tv-pulse-dot"></span>
-              Chamada Atual
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <div className="tv-badge-current">
+                <span className="tv-pulse-dot"></span>
+                Chamada Atual
+              </div>
+
+              <div className="tv-badge-type">
+                <span className="tv-type-dot"></span>
+                {currentCall.priorityLabel}
+              </div>
             </div>
 
-            <div className="tv-badge-type">
-              <span className="tv-type-dot"></span>
-              Atendimento Convencional (Normal)
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <button
+                className="tv-sound-repeat-pill"
+                onClick={handleAnnounceCurrent}
+                title="Tocar sino e anúncio com voz em português desta senha agora"
+              >
+                <Volume2 size={16} />
+                <span>Ouvir Chamada com Voz &amp; Sino</span>
+              </button>
+
+              <button
+                className="tv-sound-repeat-pill"
+                style={{ backgroundColor: '#eff6ff', borderColor: '#bfdbfe', color: '#1d4ed8' }}
+                onClick={() => handleCallTicket(mockNextTickets[0])}
+                title="Simular a chamada do próximo da fila na TV"
+              >
+                <Sparkles size={15} />
+                <span>Próxima Senha</span>
+              </button>
             </div>
           </div>
 
           <div className="tv-ticket-center">
             <div className="tv-ticket-label">Senha Chamada</div>
-            <div className="tv-ticket-code">A123</div>
+            <div className="tv-ticket-code">{currentCall.code}</div>
             <div>
               <div className="tv-room-banner">
                 <DoorOpen size={26} />
-                Sala 02 • Consultório Médico
+                {currentCall.room}
               </div>
             </div>
           </div>
@@ -209,14 +366,14 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
             <div className="tv-patient-section">
               <div>
                 <div className="tv-patient-meta-label">Paciente</div>
-                <div className="tv-patient-name">José Maria da Silva</div>
+                <div className="tv-patient-name">{currentCall.patientName}</div>
               </div>
 
               <div className="tv-specialty-info">
                 <div className="tv-patient-meta-label">Especialidade / Profissional</div>
-                <div className="tv-specialty-name">Clínico Geral</div>
+                <div className="tv-specialty-name">{currentCall.specialty}</div>
                 <div className="tv-doctor-subtext">
-                  Dra. Mariana Vasconcellos • Triagem: 08:30
+                  {currentCall.doctor}
                 </div>
               </div>
             </div>
@@ -230,7 +387,7 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
           </div>
         </section>
 
-        {/* Coluna Lateral: Próximas Senhas */}
+        {/* Coluna Lateral: Próximas Senhas (interativas com clique para chamar) */}
         <aside className="tv-next-queue-box">
           <div>
             <div className="tv-next-header">
@@ -244,13 +401,18 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
               </div>
 
               <div className="tv-next-count-badge">
-                4 aguardando
+                {mockNextTickets.length} aguardando
               </div>
             </div>
 
             <div className="tv-next-list">
               {mockNextTickets.map((t) => (
-                <div key={t.code} className={`tv-next-item ${t.priorityType}`}>
+                <div
+                  key={t.code}
+                  className={`tv-next-item ${t.priorityType}`}
+                  onClick={() => handleCallTicket(t)}
+                  title="Clique para chamar esta senha imediatamente no painel de TV com áudio e voz"
+                >
                   <div className="tv-next-item-top">
                     <div className="tv-next-item-code-group">
                       <span className="tv-next-item-code">{t.code}</span>
@@ -258,7 +420,10 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
                         {t.priorityLabel}
                       </span>
                     </div>
-                    <span className="tv-tag-status">Aguardando</span>
+                    <span className="tv-tag-status" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: '#10b981', fontWeight: 700 }}>
+                      <Volume2 size={13} />
+                      Chamar
+                    </span>
                   </div>
 
                   <div className="tv-next-item-name">{t.name}</div>
