@@ -30,7 +30,7 @@ interface NextTicket {
   estimatedTime: string;
 }
 
-const mockNextTickets: NextTicket[] = [
+const INITIAL_UPCOMING_TICKETS: NextTicket[] = [
   {
     code: 'B045',
     priorityType: 'preferencial',
@@ -63,6 +63,38 @@ const mockNextTickets: NextTicket[] = [
     details: 'Odontologia • Gabinete 01',
     estimatedTime: 'Previsto: 10:35',
   },
+  {
+    code: 'P046',
+    priorityType: 'preferencial',
+    priorityLabel: 'PREFERENCIAL',
+    name: 'Sebastião Moreira Neves',
+    details: 'Clínico Geral • Sala 02',
+    estimatedTime: 'Previsto: 10:40',
+  },
+  {
+    code: 'A126',
+    priorityType: 'normal',
+    priorityLabel: 'NORMAL',
+    name: 'Juliana Paes Fagundes',
+    details: 'Vacinação • Sala 05',
+    estimatedTime: 'Previsto: 10:45',
+  },
+  {
+    code: 'U003',
+    priorityType: 'urgente',
+    priorityLabel: 'URGÊNCIA',
+    name: 'Gabriel Albuquerque Rios',
+    details: 'Triagem Rápida • Sala 01',
+    estimatedTime: 'Imediato',
+  },
+  {
+    code: 'B047',
+    priorityType: 'preferencial',
+    priorityLabel: 'PREFERENCIAL',
+    name: 'Francisca Helena Souza',
+    details: 'Ginecologia • Sala 03',
+    estimatedTime: 'Previsto: 10:55',
+  },
 ];
 
 export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
@@ -72,6 +104,7 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isFlashing, setIsFlashing] = useState(false);
   const [audioUnlocked, setAudioUnlocked] = useState(false);
+  const [upcomingTickets, setUpcomingTickets] = useState<NextTicket[]>(INITIAL_UPCOMING_TICKETS);
 
   const [currentCall, setCurrentCall] = useState({
     code: 'A123',
@@ -239,6 +272,49 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
     });
   };
 
+  // Chamar o próximo da fila e avançar dinamicamente a lista
+  const handleCallNextInQueue = () => {
+    if (upcomingTickets.length === 0) return;
+    const [next, ...rest] = upcomingTickets;
+    handleCallTicket(next);
+
+    const now = new Date();
+    const nextMinutes = 35 + ((upcomingTickets.length * 7) % 25);
+    const newTime = new Date(now.getTime() + nextMinutes * 60000).toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    const recycledTicket: NextTicket = {
+      ...next,
+      estimatedTime: `Previsto: ${newTime}`,
+    };
+
+    setUpcomingTickets([...rest, recycledTicket]);
+  };
+
+  // Chamar um paciente específico clicado na lista lateral e avançar a fila
+  const handleSelectAndCallTicket = (ticket: NextTicket) => {
+    handleCallTicket(ticket);
+
+    const now = new Date();
+    const nextMinutes = 40 + ((upcomingTickets.length * 9) % 20);
+    const newTime = new Date(now.getTime() + nextMinutes * 60000).toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    const recycledTicket: NextTicket = {
+      ...ticket,
+      estimatedTime: `Previsto: ${newTime}`,
+    };
+
+    setUpcomingTickets((prev) => {
+      const filtered = prev.filter((t) => t.code !== ticket.code);
+      return [...filtered, recycledTicket];
+    });
+  };
+
   return (
     <div className="tv-panel-container">
       {/* Banner de permissão de áudio para navegadores com autoplay restrito */}
@@ -342,11 +418,11 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
               <button
                 className="tv-sound-repeat-pill"
                 style={{ backgroundColor: '#eff6ff', borderColor: '#bfdbfe', color: '#1d4ed8' }}
-                onClick={() => handleCallTicket(mockNextTickets[0])}
-                title="Simular a chamada do próximo da fila na TV"
+                onClick={handleCallNextInQueue}
+                title="Avançar e chamar a próxima senha da fila"
               >
                 <Sparkles size={15} />
-                <span>Próxima Senha</span>
+                <span>Próxima Senha {upcomingTickets[0] ? `(${upcomingTickets[0].code})` : ''}</span>
               </button>
             </div>
           </div>
@@ -401,16 +477,16 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
               </div>
 
               <div className="tv-next-count-badge">
-                {mockNextTickets.length} aguardando
+                {upcomingTickets.length} aguardando
               </div>
             </div>
 
             <div className="tv-next-list">
-              {mockNextTickets.map((t) => (
+              {upcomingTickets.slice(0, 4).map((t) => (
                 <div
                   key={t.code}
                   className={`tv-next-item ${t.priorityType}`}
-                  onClick={() => handleCallTicket(t)}
+                  onClick={() => handleSelectAndCallTicket(t)}
                   title="Clique para chamar esta senha imediatamente no painel de TV com áudio e voz"
                 >
                   <div className="tv-next-item-top">
