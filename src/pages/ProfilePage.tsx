@@ -18,6 +18,7 @@ import {
   KeyRound,
 } from 'lucide-react';
 import type { InternalScreen } from '../components/AppLayout';
+import { authService } from '../services/authService';
 import '../styles/profile.css';
 
 export interface UserProfile {
@@ -59,7 +60,26 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
 
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Carrega perfil atualizado do backend ao abrir
+  React.useEffect(() => {
+    authService.getProfile()
+      .then((p) => {
+        setName(p.name);
+        setRole(p.role);
+        setUnit(p.unit || '');
+        setEmail(p.email);
+        setCpf(p.cpf);
+        setPhone(p.phone || '');
+        setRegistrationNumber(p.registrationNumber || '');
+        if (p.avatarUrl) setAvatarUrl(p.avatarUrl);
+      })
+      .catch(() => {
+        // Usa dados locais se não logado
+      });
+  }, []);
 
   // Presets rápidos de avatar com imagens temáticas de saúde pública
   const avatarPresets = [
@@ -74,6 +94,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setAvatarUrl(reader.result as string);
@@ -110,7 +131,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
     setPhone(formatted);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (newPassword && newPassword !== confirmPassword) {
@@ -120,7 +141,25 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
 
     setIsSaving(true);
 
-    setTimeout(() => {
+    try {
+      let finalAvatar = avatarUrl;
+      if (selectedFile) {
+        finalAvatar = await authService.uploadAvatar(selectedFile);
+      }
+
+      await authService.updateProfile({
+        name,
+        role,
+        unit,
+        phone,
+        registrationNumber,
+        avatarUrl: finalAvatar,
+      });
+
+      if (currentPassword && newPassword) {
+        await authService.changePassword(currentPassword, newPassword);
+      }
+
       setIsSaving(false);
       onUpdateProfile({
         name,
@@ -130,18 +169,22 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         cpf,
         phone,
         registrationNumber,
-        avatarUrl,
+        avatarUrl: finalAvatar,
       });
 
       setToastMsg('Perfil, foto e dados cadastrais salvos com sucesso!');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      setSelectedFile(null);
 
       setTimeout(() => {
         setToastMsg(null);
       }, 3500);
-    }, 500);
+    } catch (err: any) {
+      setIsSaving(false);
+      alert(err.message || 'Erro ao atualizar dados do perfil.');
+    }
   };
 
   return (

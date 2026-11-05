@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   User,
   Fingerprint,
@@ -15,8 +15,12 @@ import {
   ChevronRight,
   Printer,
   Check,
+  X,
 } from 'lucide-react';
 import type { InternalScreen } from '../components/AppLayout';
+import { ticketService, type ThermalReceiptData } from '../services/ticketService';
+import { patientService, type SearchPatientResult } from '../services/patientService';
+import { roomService } from '../services/roomService';
 import '../styles/add-queue.css';
 
 interface AddToQueuePageProps {
@@ -31,18 +35,73 @@ export const AddToQueuePage: React.FC<AddToQueuePageProps> = ({ onNavigate }) =>
   const [cpf, setCpf] = useState('489.201.782-90');
   const [birthDate, setBirthDate] = useState('14/05/1958');
   const [cns, setCns] = useState('702 4091 8832 0019');
+  const [phone, setPhone] = useState('(11) 98765-4321');
+  const [notes] = useState('');
   const [priority, setPriority] = useState<PriorityTypeModern>('IDOSO_60');
   const [specialty, setSpecialty] = useState<SpecialtyKeyModern>('CLINICO');
 
   // Estado dinâmico do Calendário (Data, Mês e Ano)
   const today = new Date();
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date(2024, 9, 24)); // Padrão: 24 de Outubro de 2024
-  const [viewMonth, setViewMonth] = useState<number>(9); // 0 = Jan, 9 = Out
-  const [viewYear, setViewYear] = useState<number>(2024);
+  const [selectedDate, setSelectedDate] = useState<Date>(today);
+  const [viewMonth, setViewMonth] = useState<number>(today.getMonth());
+  const [viewYear, setViewYear] = useState<number>(today.getFullYear());
 
   const [selectedTime, setSelectedTime] = useState('10:00 (Agora)');
-  const [selectedRoom, setSelectedRoom] = useState('Consultório 02 (Dr. Roberto - Clínico)');
+  const [availableRooms, setAvailableRooms] = useState<Array<{ id: string; name: string; label: string; assignedProfessional?: string }>>([]);
+  const [selectedRoom, setSelectedRoom] = useState('Consultório 02');
+  const [selectedRoomId, setSelectedRoomId] = useState('');
   const [successToast, setSuccessToast] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [receiptModal, setReceiptModal] = useState<ThermalReceiptData | null>(null);
+
+  // Modal de busca CADSUS
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchPatientResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    roomService.list().then((rooms) => {
+      setAvailableRooms(rooms);
+      if (rooms.length > 0) {
+        setSelectedRoom(rooms[0].name);
+        setSelectedRoomId(rooms[0].id);
+      }
+    }).catch(() => {});
+  }, []);
+
+  const handleSearchCadsus = async () => {
+    if (!searchQuery.trim()) return;
+    setIsSearching(true);
+    try {
+      const results = await patientService.search(searchQuery);
+      setSearchResults(results);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSelectPatient = (p: SearchPatientResult) => {
+    setName(p.name);
+    if (p.cpf) setCpf(p.cpf);
+    if (p.susCard) setCns(p.susCard);
+    if (p.birthDate) {
+      const d = new Date(p.birthDate);
+      if (!isNaN(d.getTime())) {
+        setBirthDate(`${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`);
+      }
+    }
+    if (p.phone) setPhone(p.phone);
+    if (p.specialCondition) {
+      if (p.specialCondition.includes('80')) setPriority('IDOSO_80');
+      else if (p.specialCondition.includes('60')) setPriority('IDOSO_60');
+      else if (p.specialCondition.toLowerCase().includes('gest')) setPriority('GESTANTE');
+      else if (p.specialCondition.toLowerCase().includes('pcd')) setPriority('PCD');
+    }
+    setShowSearchModal(false);
+  };
 
   const MONTH_NAMES = [
     'Janeiro',
@@ -163,13 +222,40 @@ export const AddToQueuePage: React.FC<AddToQueuePageProps> = ({ onNavigate }) =>
     ODONTOLOGIA: 'Odontologia',
   };
 
-  const handleEmitTicket = (e: React.FormEvent) => {
+  const handleEmitTicket = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSuccessToast(`Senha P-038 emitida para ${formattedSelectedDate}! Comprovante enviado para impressão com QR Code.`);
-    setTimeout(() => {
-      setSuccessToast(null);
-      onNavigate('queue-list');
-    }, 2800);
+    setIsSubmitting(true);
+
+    try {
+      const result = await ticketService.createTicket({
+        patientName: name,
+        cpf,
+        cartaoSus: cns,
+        birthDate,
+        phone,
+        priority,
+        service: specialty,
+        roomId: selectedRoomId || undefined,
+        room: selectedRoom,
+        selectedDate: formattedSelectedDate,
+        selectedTime: selectedTime.replace(' (Agora)', ''),
+        notes,
+      });
+
+      setIsSubmitting(false);
+      if (result.receipt) {
+        setReceiptModal(result.receipt);
+      } else {
+        setSuccessToast(`Senha ${result.ticket.code} emitida com sucesso!`);
+        setTimeout(() => {
+          setSuccessToast(null);
+          onNavigate('queue-list');
+        }, 2200);
+      }
+    } catch (err: any) {
+      setIsSubmitting(false);
+      alert(err.message || 'Erro ao emitir senha.');
+    }
   };
 
   return (
@@ -251,10 +337,10 @@ export const AddToQueuePage: React.FC<AddToQueuePageProps> = ({ onNavigate }) =>
               <button
                 type="button"
                 className="btn-search-citizen"
-                onClick={() => alert('Consultando base municipal e federal do CADSUS...')}
+                onClick={() => setShowSearchModal(true)}
               >
                 <Search size={13} />
-                Buscar Cidadão
+                Buscar Cidadão (CADSUS)
               </button>
             </div>
 
@@ -636,13 +722,31 @@ export const AddToQueuePage: React.FC<AddToQueuePageProps> = ({ onNavigate }) =>
 
               <select
                 className="modern-select"
-                value={selectedRoom}
-                onChange={(e) => setSelectedRoom(e.target.value)}
+                value={selectedRoomId || selectedRoom}
+                onChange={(e) => {
+                  const r = availableRooms.find((rm) => rm.id === e.target.value || rm.name === e.target.value);
+                  if (r) {
+                    setSelectedRoom(r.name);
+                    setSelectedRoomId(r.id);
+                  } else {
+                    setSelectedRoom(e.target.value);
+                  }
+                }}
               >
-                <option value="Consultório 02 (Dr. Roberto - Clínico)">Consultório 02 (Dr. Roberto - Clínico)</option>
-                <option value="Consultório 01 (Dra. Clara - Pediatra)">Consultório 01 (Dra. Clara - Pediatra)</option>
-                <option value="Consultório 03 (Dra. Vanessa - Odonto)">Consultório 03 (Dra. Vanessa - Odonto)</option>
-                <option value="Sala 04 (Pré-Natal / Enf. Mariana)">Sala 04 (Pré-Natal / Enf. Mariana)</option>
+                {availableRooms.length > 0 ? (
+                  availableRooms.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name} {r.assignedProfessional ? `(${r.assignedProfessional})` : ''}
+                    </option>
+                  ))
+                ) : (
+                  <>
+                    <option value="Consultório 02">Consultório 02 (Dr. Roberto - Clínico)</option>
+                    <option value="Consultório 01">Consultório 01 (Dra. Clara - Pediatra)</option>
+                    <option value="Consultório 03">Consultório 03 (Dra. Vanessa - Odonto)</option>
+                    <option value="Sala 04">Sala 04 (Pré-Natal / Enf. Mariana)</option>
+                  </>
+                )}
               </select>
             </div>
 
@@ -712,9 +816,9 @@ export const AddToQueuePage: React.FC<AddToQueuePageProps> = ({ onNavigate }) =>
               </div>
             </div>
 
-            <button type="submit" className="btn-emit-ticket-primary">
+            <button type="submit" className="btn-emit-ticket-primary" disabled={isSubmitting}>
               <Printer size={16} />
-              Emitir Senha e Registrar na Fila
+              {isSubmitting ? 'Emitindo...' : 'Emitir Senha e Registrar na Fila'}
             </button>
 
             <div className="summary-card-qrcode-note">
@@ -724,6 +828,255 @@ export const AddToQueuePage: React.FC<AddToQueuePageProps> = ({ onNavigate }) =>
           </div>
         </div>
       </form>
+
+      {/* ================= MODAL DE BUSCA CADSUS ================= */}
+      {showSearchModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.75)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 99999,
+          backdropFilter: 'blur(4px)',
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '16px',
+            width: '90%',
+            maxWidth: '560px',
+            padding: '1.75rem',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: '#0f172a' }}>
+                  Localizar Cidadão no CADSUS
+                </h3>
+                <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: '#64748b' }}>
+                  Busque por Nome Completo, CPF ou Cartão Nacional de Saúde (CNS).
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSearchModal(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+              <input
+                type="text"
+                placeholder="Ex: Maria, 489.201 ou 702409..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleSearchCadsus())}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem 1rem',
+                  borderRadius: '10px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '0.95rem',
+                }}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={handleSearchCadsus}
+                disabled={isSearching}
+                style={{
+                  padding: '0.75rem 1.25rem',
+                  backgroundColor: '#0284c7',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                }}
+              >
+                <Search size={16} />
+                {isSearching ? 'Buscando...' : 'Pesquisar'}
+              </button>
+            </div>
+
+            <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
+              {searchResults.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#94a3b8', fontSize: '0.9rem' }}>
+                  {isSearching ? 'Consultando base CADSUS...' : 'Nenhum cidadão localizado com este termo.'}
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {searchResults.map((p) => (
+                    <div
+                      key={p.id}
+                      onClick={() => handleSelectPatient(p)}
+                      style={{
+                        padding: '0.85rem 1rem',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '10px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f0f9ff')}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ffffff')}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.95rem' }}>{p.name}</div>
+                        <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.2rem' }}>
+                          CPF: {p.cpf || 'Não inf.'} • CNS: {p.susCard || 'Não inf.'}
+                        </div>
+                      </div>
+                      {p.specialCondition && (
+                        <span style={{
+                          backgroundColor: '#e0f2fe',
+                          color: '#0369a1',
+                          padding: '0.25rem 0.6rem',
+                          borderRadius: '999px',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                        }}>
+                          {p.specialCondition}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL DE COMPROVANTE TÉRMICO E QR CODE ================= */}
+      {receiptModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.75)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 99999,
+          backdropFilter: 'blur(4px)',
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '16px',
+            width: '90%',
+            maxWidth: '420px',
+            padding: '1.75rem',
+            boxShadow: '0 25px 60px rgba(0,0,0,0.35)',
+            textAlign: 'center',
+          }}>
+            <div style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '50%',
+              backgroundColor: '#ecfdf5',
+              color: '#059669',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 1rem',
+            }}>
+              <CheckCircle2 size={32} />
+            </div>
+
+            <h3 style={{ margin: '0 0 0.25rem', fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
+              Senha Emitida com Sucesso!
+            </h3>
+            <p style={{ margin: '0 0 1.25rem', fontSize: '0.85rem', color: '#64748b' }}>
+              Comprovante do acolhimento pronto para impressão.
+            </p>
+
+            <div style={{
+              backgroundColor: '#f8fafc',
+              border: '1px dashed #cbd5e1',
+              borderRadius: '12px',
+              padding: '1.25rem',
+              marginBottom: '1.25rem',
+            }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                SENHA DO CIDADÃO
+              </div>
+              <div style={{ fontSize: '2.5rem', fontWeight: 900, color: '#0284c7', margin: '0.25rem 0' }}>
+                {receiptModal.code}
+              </div>
+              <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '1rem' }}>
+                {receiptModal.patientName}
+              </div>
+              <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.2rem' }}>
+                {receiptModal.priorityLabel} • {receiptModal.serviceLabel}
+              </div>
+
+              {receiptModal.qrSvg && (
+                <div
+                  style={{ width: '130px', height: '130px', margin: '1rem auto 0' }}
+                  dangerouslySetInnerHTML={{ __html: receiptModal.qrSvg }}
+                />
+              )}
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button
+                type="button"
+                onClick={() => window.print()}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  backgroundColor: '#0f172a',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                }}
+              >
+                <Printer size={16} />
+                Imprimir
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setReceiptModal(null);
+                  onNavigate('queue-list');
+                }}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  backgroundColor: '#0284c7',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                Ir para a Fila
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

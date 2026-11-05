@@ -9,6 +9,7 @@ import {
   Clock
 } from 'lucide-react';
 import Logo from '../components/Logo';
+import { authService } from '../services/authService';
 import '../styles/auth.css';
 
 interface ForgotPasswordPageProps {
@@ -23,7 +24,7 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!identifier) {
       setError('Informe seu e-mail corporativo ou CPF.');
@@ -33,10 +34,14 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({
     setError(null);
     setIsLoading(true);
 
-    setTimeout(() => {
+    try {
+      await authService.forgotPassword(identifier);
       setIsLoading(false);
       setIsSubmitted(true);
-    }, 700);
+    } catch (err: any) {
+      setIsLoading(false);
+      setError(err.message || 'Erro ao processar solicitação de recuperação.');
+    }
   };
 
   return (

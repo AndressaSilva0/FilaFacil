@@ -11,6 +11,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import Logo from '../components/Logo';
+import { authService } from '../services/authService';
 import '../styles/auth.css';
 
 interface LoginPageProps {
@@ -49,7 +50,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     setCpf(formatted);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!cpf || !password) {
       setError('Por favor, preencha seu CPF e senha de acesso.');
@@ -59,14 +60,22 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     setError(null);
     setIsLoading(true);
 
-    setTimeout(() => {
+    try {
+      await authService.login({
+        identifier: cpf,
+        password,
+        rememberMe,
+      });
       setIsLoading(false);
       if (onLoginSuccess) {
         onLoginSuccess();
       } else {
         alert('Login efetuado com sucesso no FilaFácil UBS!');
       }
-    }, 800);
+    } catch (err: any) {
+      setIsLoading(false);
+      setError(err.message || 'Falha na autenticação. Verifique seu CPF e senha.');
+    }
   };
 
   return (

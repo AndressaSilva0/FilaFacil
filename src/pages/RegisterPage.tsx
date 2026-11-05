@@ -18,6 +18,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import Logo from '../components/Logo';
+import { authService } from '../services/authService';
 import '../styles/auth.css';
 
 interface RegisterPageProps {
@@ -57,7 +58,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({
     setCpf(formatted);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!name || !cpf || !role || !unit || !email || !password) {
@@ -78,7 +79,16 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({
     setError(null);
     setIsLoading(true);
 
-    setTimeout(() => {
+    try {
+      await authService.register({
+        name,
+        cpf,
+        role,
+        unit,
+        email,
+        password,
+        acceptedTerms,
+      });
       setIsLoading(false);
       if (onRegisterSuccess) {
         onRegisterSuccess();
@@ -86,7 +96,10 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({
         alert('Cadastro realizado com sucesso! Redirecionando para o login...');
         if (onNavigateToLogin) onNavigateToLogin();
       }
-    }, 900);
+    } catch (err: any) {
+      setIsLoading(false);
+      setError(err.message || 'Erro ao realizar cadastro.');
+    }
   };
 
   return (

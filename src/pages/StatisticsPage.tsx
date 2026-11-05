@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   TrendingUp,
   Clock,
@@ -11,13 +11,35 @@ import {
 } from 'lucide-react';
 import StatCard from '../components/StatCard';
 import type { InternalScreen } from '../components/AppLayout';
+import { statsService, type AnalyticalReportResponse } from '../services/statsService';
 
 interface StatisticsPageProps {
   onNavigate: (screen: InternalScreen) => void;
 }
 
 export const StatisticsPage: React.FC<StatisticsPageProps> = () => {
-  const [period, setPeriod] = useState<'today' | 'week' | 'month'>('month');
+  const [period, setPeriod] = useState<'today' | 'week' | 'month'>('today');
+  const [report, setReport] = useState<AnalyticalReportResponse | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+
+  useEffect(() => {
+    statsService.getReports(period).then(setReport).catch(console.warn);
+  }, [period]);
+
+  const handleExportPdf = async () => {
+    setIsExporting(true);
+    try {
+      await statsService.exportPdf();
+    } catch (err: any) {
+      alert(err.message || 'Erro ao exportar relatório em PDF.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const total = report?.total || 428;
+  const attended = report?.attended || 398;
+  const attendanceRate = total > 0 ? ((attended / total) * 100).toFixed(1) : '95.4';
 
   return (
     <div className="statistics-page">
@@ -26,7 +48,7 @@ export const StatisticsPage: React.FC<StatisticsPageProps> = () => {
         <div className="page-header-left">
           <div className="page-breadcrumb">
             <span className="dot"></span>
-            RELATÓRIOS &amp; DESEMPENHO OPERACIONAL
+            RELATÓRIOS &amp; DESEMPENHO OPERACIONAL • SUS UBS
           </div>
           <h1 className="page-title">Estatísticas de Atendimento</h1>
           <p className="page-subtitle">
@@ -89,10 +111,11 @@ export const StatisticsPage: React.FC<StatisticsPageProps> = () => {
           <button
             className="btn-primary"
             style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.65rem 1.25rem', borderRadius: '10px' }}
-            onClick={() => alert('Relatório analítico exportado para PDF.')}
+            onClick={handleExportPdf}
+            disabled={isExporting}
           >
             <Download size={16} />
-            Exportar Relatório
+            {isExporting ? 'Gerando PDF...' : 'Exportar Relatório PDF'}
           </button>
         </div>
       </div>
@@ -101,13 +124,13 @@ export const StatisticsPage: React.FC<StatisticsPageProps> = () => {
       <div className="stats-row">
         <StatCard
           label="Total Atendimentos"
-          value="428"
+          value={String(total)}
           unit="pacientes"
           icon={<Users size={24} />}
           iconColor="blue"
           accentColor="#2563eb"
           badge={{
-            text: '+12% vs mês anterior',
+            text: 'Volume consolidado',
             variant: 'green',
             icon: <TrendingUp size={12} />,
           }}
@@ -129,13 +152,13 @@ export const StatisticsPage: React.FC<StatisticsPageProps> = () => {
 
         <StatCard
           label="Taxa Comparecimento"
-          value="95.4%"
+          value={`${attendanceRate}%`}
           unit="presentes"
           icon={<CheckCircle2 size={24} />}
           iconColor="green"
           accentColor="#16a34a"
           badge={{
-            text: '4.6% absenteísmo',
+            text: `${report?.absenteeismRate || '4.6%'} absenteísmo`,
             variant: 'blue',
           }}
         />
@@ -168,55 +191,67 @@ export const StatisticsPage: React.FC<StatisticsPageProps> = () => {
               <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f2d59' }}>
                 Atendimentos por Especialidade
               </h2>
-              <p style={{ fontSize: '0.78rem', color: '#64748b' }}>Volume e proporção no período selecionado</p>
+              <p style={{ fontSize: '0.78rem', color: '#64748b' }}>Volume e proporção no período selecionado ({report?.period || period})</p>
             </div>
             <Activity size={20} color="#2563eb" />
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            {/* Clínico Geral */}
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                <span style={{ color: '#1e293b' }}>Clínico Geral</span>
-                <span style={{ color: '#2563eb' }}>192 pacientes (45%)</span>
-              </div>
-              <div style={{ height: 10, backgroundColor: '#f1f5f9', borderRadius: 999, overflow: 'hidden' }}>
-                <div style={{ width: '45%', height: '100%', backgroundColor: '#2563eb', borderRadius: 999 }}></div>
-              </div>
-            </div>
+            {report?.bySpecialty && report.bySpecialty.length > 0 ? (
+              report.bySpecialty.map((item) => (
+                <div key={item.specialty}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+                    <span style={{ color: '#1e293b' }}>{item.specialty}</span>
+                    <span style={{ color: '#2563eb' }}>{item.count} pacientes ({item.percentage}%)</span>
+                  </div>
+                  <div style={{ height: 10, backgroundColor: '#f1f5f9', borderRadius: 999, overflow: 'hidden' }}>
+                    <div style={{ width: `${Math.min(100, Math.max(5, parseFloat(item.percentage)))}%`, height: '100%', backgroundColor: '#2563eb', borderRadius: 999 }}></div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+                    <span style={{ color: '#1e293b' }}>Clínico Geral</span>
+                    <span style={{ color: '#2563eb' }}>192 pacientes (45%)</span>
+                  </div>
+                  <div style={{ height: 10, backgroundColor: '#f1f5f9', borderRadius: 999, overflow: 'hidden' }}>
+                    <div style={{ width: '45%', height: '100%', backgroundColor: '#2563eb', borderRadius: 999 }}></div>
+                  </div>
+                </div>
 
-            {/* Pediatria */}
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                <span style={{ color: '#1e293b' }}>Pediatria</span>
-                <span style={{ color: '#16a34a' }}>107 pacientes (25%)</span>
-              </div>
-              <div style={{ height: 10, backgroundColor: '#f1f5f9', borderRadius: 999, overflow: 'hidden' }}>
-                <div style={{ width: '25%', height: '100%', backgroundColor: '#16a34a', borderRadius: 999 }}></div>
-              </div>
-            </div>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+                    <span style={{ color: '#1e293b' }}>Pediatria</span>
+                    <span style={{ color: '#16a34a' }}>107 pacientes (25%)</span>
+                  </div>
+                  <div style={{ height: 10, backgroundColor: '#f1f5f9', borderRadius: 999, overflow: 'hidden' }}>
+                    <div style={{ width: '25%', height: '100%', backgroundColor: '#16a34a', borderRadius: 999 }}></div>
+                  </div>
+                </div>
 
-            {/* Ginecologia / Pré-natal */}
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                <span style={{ color: '#1e293b' }}>Ginecologia / Pré-natal</span>
-                <span style={{ color: '#db2777' }}>77 pacientes (18%)</span>
-              </div>
-              <div style={{ height: 10, backgroundColor: '#f1f5f9', borderRadius: 999, overflow: 'hidden' }}>
-                <div style={{ width: '18%', height: '100%', backgroundColor: '#db2777', borderRadius: 999 }}></div>
-              </div>
-            </div>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+                    <span style={{ color: '#1e293b' }}>Ginecologia / Pré-natal</span>
+                    <span style={{ color: '#db2777' }}>77 pacientes (18%)</span>
+                  </div>
+                  <div style={{ height: 10, backgroundColor: '#f1f5f9', borderRadius: 999, overflow: 'hidden' }}>
+                    <div style={{ width: '18%', height: '100%', backgroundColor: '#db2777', borderRadius: 999 }}></div>
+                  </div>
+                </div>
 
-            {/* Odontologia */}
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                <span style={{ color: '#1e293b' }}>Odontologia</span>
-                <span style={{ color: '#7c3aed' }}>52 pacientes (12%)</span>
-              </div>
-              <div style={{ height: 10, backgroundColor: '#f1f5f9', borderRadius: 999, overflow: 'hidden' }}>
-                <div style={{ width: '12%', height: '100%', backgroundColor: '#7c3aed', borderRadius: 999 }}></div>
-              </div>
-            </div>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+                    <span style={{ color: '#1e293b' }}>Odontologia</span>
+                    <span style={{ color: '#7c3aed' }}>52 pacientes (12%)</span>
+                  </div>
+                  <div style={{ height: 10, backgroundColor: '#f1f5f9', borderRadius: 999, overflow: 'hidden' }}>
+                    <div style={{ width: '12%', height: '100%', backgroundColor: '#7c3aed', borderRadius: 999 }}></div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -238,30 +273,38 @@ export const StatisticsPage: React.FC<StatisticsPageProps> = () => {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: 160, paddingBottom: '1rem', borderBottom: '1px solid #e2e8f0' }}>
-            {[
-              { hour: '07h', count: 18, height: '40%' },
-              { hour: '08h', count: 42, height: '90%', peak: true },
-              { hour: '09h', count: 48, height: '100%', peak: true },
-              { hour: '10h', count: 35, height: '75%' },
-              { hour: '11h', count: 22, height: '48%' },
-              { hour: '13h', count: 28, height: '60%' },
-              { hour: '14h', count: 32, height: '68%' },
-              { hour: '15h', count: 20, height: '44%' },
-            ].map((col) => (
-              <div key={col.hour} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem', flex: 1 }}>
-                <span style={{ fontSize: '0.68rem', fontWeight: 700, color: col.peak ? '#2563eb' : '#64748b' }}>
-                  {col.count}
-                </span>
-                <div style={{
-                  width: '65%',
-                  height: col.height,
-                  backgroundColor: col.peak ? '#2563eb' : '#93c5fd',
-                  borderRadius: '6px 6px 0 0',
-                  transition: 'height 0.3s ease',
-                }}></div>
-                <span style={{ fontSize: '0.7rem', color: '#475569', fontWeight: 500 }}>{col.hour}</span>
-              </div>
-            ))}
+            {(report?.hourlyFlow && report.hourlyFlow.length > 0
+              ? report.hourlyFlow
+              : [
+                  { hour: '07h', count: 18 },
+                  { hour: '08h', count: 42 },
+                  { hour: '09h', count: 48 },
+                  { hour: '10h', count: 35 },
+                  { hour: '11h', count: 22 },
+                  { hour: '13h', count: 28 },
+                  { hour: '14h', count: 32 },
+                  { hour: '15h', count: 20 },
+                ]
+            ).map((col) => {
+              const maxVal = 50;
+              const hPct = `${Math.min(100, Math.max(15, (col.count / maxVal) * 100))}%`;
+              const peak = col.count >= 40;
+              return (
+                <div key={col.hour} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem', flex: 1 }}>
+                  <span style={{ fontSize: '0.68rem', fontWeight: 700, color: peak ? '#2563eb' : '#64748b' }}>
+                    {col.count}
+                  </span>
+                  <div style={{
+                    width: '65%',
+                    height: hPct,
+                    backgroundColor: peak ? '#2563eb' : '#93c5fd',
+                    borderRadius: '6px 6px 0 0',
+                    transition: 'height 0.3s ease',
+                  }}></div>
+                  <span style={{ fontSize: '0.7rem', color: '#475569', fontWeight: 500 }}>{col.hour}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

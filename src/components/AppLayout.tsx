@@ -16,8 +16,11 @@ import {
   HeartHandshake,
   UserCog,
   Camera,
+  Cast,
 } from 'lucide-react';
 import Logo from './Logo';
+import CastModal from './CastModal';
+import { castService } from '../services/castService';
 import type { UserProfile } from '../pages/ProfilePage';
 import '../styles/layout.css';
 
@@ -58,7 +61,16 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isCastModalOpen, setIsCastModalOpen] = useState(false);
+  const [isCasting, setIsCasting] = useState(castService.getState() === 'connected');
   const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const unsub = castService.onStateChange((state) => {
+      setIsCasting(state === 'connected');
+    });
+    return unsub;
+  }, []);
 
   // Fecha menu de perfil ao clicar fora
   useEffect(() => {
@@ -168,6 +180,17 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         </div>
 
         <div className="top-header-right">
+          {/* Botão de Transmitir para Smart TV */}
+          <button
+            className={`btn-header-icon ${isCasting ? 'active-cast' : ''}`}
+            onClick={() => setIsCastModalOpen(true)}
+            title={isCasting ? 'Transmitindo para a TV (Ativo)' : 'Transmitir Painel para Smart TV (Sem Espelhar)'}
+            aria-label="Transmitir para Smart TV"
+            style={isCasting ? { color: '#16a34a', backgroundColor: '#dcfce7' } : undefined}
+          >
+            <Cast size={18} />
+          </button>
+
           {/* Botão de Tela Cheia */}
           <button
             className="btn-header-icon"
@@ -325,6 +348,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           {children}
         </main>
       </div>
+
+      {/* Modal de Transmissão para Smart TV */}
+      <CastModal
+        isOpen={isCastModalOpen}
+        onClose={() => setIsCastModalOpen(false)}
+        onNavigateToTvPanel={() => onNavigate('tv-panel')}
+      />
     </div>
   );
 };

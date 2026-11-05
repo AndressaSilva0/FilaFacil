@@ -11,6 +11,7 @@ import TVPanelPage from './pages/TVPanelPage';
 import StatisticsPage from './pages/StatisticsPage';
 import HistoryPage from './pages/HistoryPage';
 import ProfilePage, { type UserProfile } from './pages/ProfilePage';
+import { authService } from './services/authService';
 
 export type AppScreen =
   | 'landing'
@@ -46,15 +47,30 @@ export const App: React.FC = () => {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>(getScreenFromHash);
 
   // Perfil global do usuário operador (sincronizado com o cabeçalho e página de edição)
-  const [userProfile, setUserProfile] = useState<UserProfile>({
-    name: 'Hiago Zavarize',
-    role: 'Agente de Saúde',
-    unit: 'UBS Central 01',
-    email: 'hiago.zavarize@saude.gov.br',
-    cpf: '429.810.378-15',
-    phone: '(11) 98765-4321',
-    registrationNumber: 'ACS-2024-089',
-    avatarUrl: '/images/avatars/avatar-male-agent.jpg',
+  const [userProfile, setUserProfile] = useState<UserProfile>(() => {
+    const saved = authService.getCurrentUser();
+    if (saved) {
+      return {
+        name: saved.name,
+        role: saved.role,
+        unit: saved.unit || 'UBS Central 01',
+        email: saved.email,
+        cpf: saved.cpf,
+        phone: saved.phone || '(11) 98765-4321',
+        registrationNumber: saved.registrationNumber || 'ACS-2024-089',
+        avatarUrl: saved.avatarUrl || '/images/avatars/avatar-male-agent.jpg',
+      };
+    }
+    return {
+      name: 'Hiago Zavarize',
+      role: 'Agente de Saúde',
+      unit: 'UBS Central 01',
+      email: 'hiago.zavarize@saude.gov.br',
+      cpf: '429.810.378-15',
+      phone: '(11) 98765-4321',
+      registrationNumber: 'ACS-2024-089',
+      avatarUrl: '/images/avatars/avatar-male-agent.jpg',
+    };
   });
 
   // Sincroniza o hash da URL quando a tela mudar
@@ -82,6 +98,7 @@ export const App: React.FC = () => {
   }, []);
 
   const handleLogout = () => {
+    authService.logout();
     navigateTo('landing');
   };
 
@@ -100,7 +117,22 @@ export const App: React.FC = () => {
           onNavigateToRegister={() => navigateTo('register')}
           onNavigateToForgot={() => navigateTo('forgot-password')}
           onBackToHome={() => navigateTo('landing')}
-          onLoginSuccess={() => navigateTo('dashboard')}
+          onLoginSuccess={() => {
+            const saved = authService.getCurrentUser();
+            if (saved) {
+              setUserProfile({
+                name: saved.name,
+                role: saved.role,
+                unit: saved.unit || 'UBS Central 01',
+                email: saved.email,
+                cpf: saved.cpf,
+                phone: saved.phone || '',
+                registrationNumber: saved.registrationNumber || '',
+                avatarUrl: saved.avatarUrl || '/images/avatars/avatar-male-agent.jpg',
+              });
+            }
+            navigateTo('dashboard');
+          }}
         />
       )}
 

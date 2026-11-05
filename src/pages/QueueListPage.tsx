@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Search,
-  SlidersHorizontal,
   UserPlus,
   Calendar,
   Volume2,
@@ -9,171 +8,29 @@ import {
   ExternalLink,
   RotateCcw,
   Check,
-  FileSpreadsheet,
-  ArrowRightLeft,
   ChevronLeft,
   ChevronRight,
   Baby,
   Stethoscope,
   Smile,
+  Download,
+  UserX,
+  Play,
 } from 'lucide-react';
 import type { InternalScreen } from '../components/AppLayout';
 import { soundService } from '../services/soundService';
 import { callBroadcastService } from '../services/callBroadcastService';
+import { ticketService } from '../services/ticketService';
+import { roomService } from '../services/roomService';
+import { socketService } from '../services/socketService';
+import type { Ticket, Room } from '../types';
 import '../styles/queue.css';
 
 interface QueueListPageProps {
   onNavigate: (screen: InternalScreen) => void;
 }
 
-type FilterStatus = 'ALL' | 'AGUARDANDO' | 'EM_ATENDIMENTO' | 'ATENDIDOS' | 'AUSENTES';
-
-interface QueueTableRowModern {
-  id: string;
-  code: string;
-  codeIndicator: 'green' | 'blue' | 'red' | 'gray';
-  priorityTag: string;
-  priorityTagColor: 'green' | 'blue' | 'red' | 'gray';
-  name: string;
-  patientBadge?: { text: string; variant: 'blue' | 'cyan' };
-  docInfo: string;
-  age: string;
-  specialty: string;
-  specialtyIcon: 'clinico' | 'odonto' | 'gineco' | 'pediatria';
-  arrivalTime: string;
-  waitingTimeText: string;
-  waitingTimeType: 'red' | 'green' | 'gray';
-  room: string;
-  doctor: string;
-  status: 'Aguardando' | 'Em Atendimento' | 'Atendido' | 'Ausente';
-  statusClass: 'aguardando' | 'atendimento' | 'atendido' | 'ausente';
-  actionType: 'call' | 'in_progress' | 'record' | 'absent';
-}
-
-const mockModernQueueList: QueueTableRowModern[] = [
-  {
-    id: '1',
-    code: 'A123',
-    codeIndicator: 'green',
-    priorityTag: 'Prioritário',
-    priorityTagColor: 'green',
-    name: 'Maria Aparecida dos Santos',
-    patientBadge: { text: '60+', variant: 'blue' },
-    docInfo: 'CPF: 382.***.***-12 • Cartão SUS: 7281-9920',
-    age: '68 anos',
-    specialty: 'Clínico Geral',
-    specialtyIcon: 'clinico',
-    arrivalTime: '08:14',
-    waitingTimeText: 'Espera: 28m',
-    waitingTimeType: 'red',
-    room: 'Consultório 01',
-    doctor: 'Dra. Clara Silveira',
-    status: 'Aguardando',
-    statusClass: 'aguardando',
-    actionType: 'call',
-  },
-  {
-    id: '2',
-    code: 'C044',
-    codeIndicator: 'blue',
-    priorityTag: 'Convencional',
-    priorityTagColor: 'gray',
-    name: 'Lucas Gabriel Ferreira',
-    docInfo: 'CPF: 194.***.***-45 • Cartão SUS: 8192-3301',
-    age: '32 anos',
-    specialty: 'Odontologia',
-    specialtyIcon: 'odonto',
-    arrivalTime: '08:05',
-    waitingTimeText: 'Atend. há 12m',
-    waitingTimeType: 'gray',
-    room: 'Consultório 03',
-    doctor: 'Dr. Vanessa Prado',
-    status: 'Em Atendimento',
-    statusClass: 'atendimento',
-    actionType: 'in_progress',
-  },
-  {
-    id: '3',
-    code: 'P019',
-    codeIndicator: 'blue',
-    priorityTag: 'Preferencial',
-    priorityTagColor: 'blue',
-    name: 'Beatriz Lima da Costa',
-    patientBadge: { text: 'Gestante (28 sem)', variant: 'cyan' },
-    docInfo: 'CPF: 442.***.***-89 • Cartão SUS: 3311-0941',
-    age: '26 anos',
-    specialty: 'Ginecologia / Pré-Natal',
-    specialtyIcon: 'gineco',
-    arrivalTime: '08:22',
-    waitingTimeText: 'Espera: 20m',
-    waitingTimeType: 'gray',
-    room: 'Consultório 02',
-    doctor: 'Dr. Roberto Castro',
-    status: 'Aguardando',
-    statusClass: 'aguardando',
-    actionType: 'call',
-  },
-  {
-    id: '4',
-    code: 'C043',
-    codeIndicator: 'gray',
-    priorityTag: 'Convencional',
-    priorityTagColor: 'gray',
-    name: 'Sebastião Nogueira Lima',
-    docInfo: 'CPF: 092.***.***-21 • Cartão SUS: 1044-8892',
-    age: '54 anos',
-    specialty: 'Clínico Geral',
-    specialtyIcon: 'clinico',
-    arrivalTime: '07:45',
-    waitingTimeText: 'Finalizado 08:20',
-    waitingTimeType: 'green',
-    room: 'Consultório 01',
-    doctor: 'Dra. Clara Silveira',
-    status: 'Atendido',
-    statusClass: 'atendido',
-    actionType: 'record',
-  },
-  {
-    id: '5',
-    code: 'A122',
-    codeIndicator: 'red',
-    priorityTag: 'Ausente',
-    priorityTagColor: 'red',
-    name: 'Danilo Souza Martins',
-    docInfo: 'CPF: 601.***.***-33 • Não respondeu 3 chamados',
-    age: '41 anos',
-    specialty: 'Pediatria (Acomp.)',
-    specialtyIcon: 'pediatria',
-    arrivalTime: '08:00',
-    waitingTimeText: 'Chamado 08:25',
-    waitingTimeType: 'red',
-    room: 'Consultório 02',
-    doctor: 'Dr. Roberto Castro',
-    status: 'Ausente',
-    statusClass: 'ausente',
-    actionType: 'absent',
-  },
-  {
-    id: '6',
-    code: 'C045',
-    codeIndicator: 'gray',
-    priorityTag: 'Convencional',
-    priorityTagColor: 'gray',
-    name: 'Fernanda Ribeiro Mendes',
-    docInfo: 'CPF: 812.***.***-01 • Cartão SUS: 4429-1920',
-    age: '19 anos',
-    specialty: 'Clínico Geral',
-    specialtyIcon: 'clinico',
-    arrivalTime: '08:29',
-    waitingTimeText: 'Espera: 13m',
-    waitingTimeType: 'gray',
-    room: 'Aguardando Sala',
-    doctor: 'Fila Geral',
-    status: 'Aguardando',
-    statusClass: 'aguardando',
-    actionType: 'call',
-  },
-];
+type FilterStatus = 'ALL' | 'AGUARDANDO' | 'CHAMANDO' | 'EM_ATENDIMENTO' | 'FINALIZADO' | 'AUSENTE';
 
 export const QueueListPage: React.FC<QueueListPageProps> = ({ onNavigate }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -181,28 +38,138 @@ export const QueueListPage: React.FC<QueueListPageProps> = ({ onNavigate }) => {
   const [selectedRoom, setSelectedRoom] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState<FilterStatus>('ALL');
   const [currentPage, setCurrentPage] = useState(1);
-  const [queueDate, setQueueDate] = useState('2026-10-24');
+  const [queueDate, setQueueDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  const handleCallPatient = (params: {
-    code: string;
-    name: string;
-    room?: string;
-    priority?: string;
-    isRecall?: boolean;
-  }) => {
-    const callData = {
-      code: params.code,
-      patientName: params.name,
-      room: params.room || 'Consultório 01',
-      priority: params.priority || 'Normal',
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [waitingQueue, setWaitingQueue] = useState<Ticket[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const loadTickets = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const filters = {
+        status: statusFilter === 'ALL' ? undefined : statusFilter,
+        specialty: selectedSpecialty === 'ALL' ? undefined : selectedSpecialty,
+        room: selectedRoom === 'ALL' ? undefined : selectedRoom,
+        date: queueDate || undefined,
+        search: searchTerm.trim() || undefined,
+        page: currentPage,
+        limit: 12,
+      };
+
+      const [ticketsData, waitingData] = await Promise.all([
+        ticketService.getTickets(filters),
+        ticketService.getWaitingQueue(),
+      ]);
+
+      setTickets(ticketsData.tickets);
+      setTotalCount(ticketsData.total);
+      setTotalPages(Math.max(1, ticketsData.totalPages));
+      setWaitingQueue(waitingData);
+    } catch (err) {
+      console.warn('Erro ao carregar fila:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [statusFilter, selectedSpecialty, selectedRoom, queueDate, searchTerm, currentPage]);
+
+  useEffect(() => {
+    roomService.list().then(setRooms).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    loadTickets();
+
+    const unsubCalled = socketService.onTicketCalled(() => loadTickets());
+    const unsubStatus = socketService.onStatusUpdated(() => loadTickets());
+    const unsubQueue = socketService.onQueueUpdated(() => loadTickets());
+
+    return () => {
+      unsubCalled();
+      unsubStatus();
+      unsubQueue();
     };
-    soundService.announceCall(callData);
-    callBroadcastService.emitCall(callData);
-    setToastMsg(
-      `${params.isRecall ? 'Rechamando' : 'Chamando'} ${params.code} (${params.name}) para ${params.room || 'atendimento'}!`
-    );
-    setTimeout(() => setToastMsg(null), 4000);
+  }, [loadTickets]);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
+  };
+
+  const handleCallPatient = async (ticket: Ticket, isRecall = false) => {
+    try {
+      const called = isRecall
+        ? await ticketService.recall(ticket.id)
+        : await ticketService.callTicket(ticket.id, ticket.room, ticket.professional);
+
+      soundService.announceCall({
+        code: called.code,
+        patientName: called.patientName,
+        room: called.room || 'Consultório 01',
+        priority: called.priorityLabel || called.priority,
+      });
+
+      callBroadcastService.emitCall({
+        code: called.code,
+        patientName: called.patientName,
+        room: called.room || 'Consultório 01',
+        priority: called.priorityLabel || called.priority,
+      });
+
+      showToast(`${isRecall ? 'Rechamando' : 'Chamando'} ${called.code} (${called.patientName}) para ${called.room || 'atendimento'}!`);
+      loadTickets();
+    } catch (err: any) {
+      alert(err.message || 'Erro ao chamar paciente.');
+    }
+  };
+
+  const handleStartAttendance = async (ticket: Ticket) => {
+    try {
+      await ticketService.startAttendance(ticket.id);
+      showToast(`Atendimento de ${ticket.code} iniciado.`);
+      loadTickets();
+    } catch (err: any) {
+      alert(err.message || 'Erro ao iniciar atendimento.');
+    }
+  };
+
+  const handleFinishAttendance = async (ticket: Ticket) => {
+    try {
+      await ticketService.finishAttendance(ticket.id);
+      showToast(`Atendimento de ${ticket.code} finalizado.`);
+      loadTickets();
+    } catch (err: any) {
+      alert(err.message || 'Erro ao finalizar atendimento.');
+    }
+  };
+
+  const handleMarkAbsent = async (ticket: Ticket) => {
+    try {
+      await ticketService.markAbsent(ticket.id);
+      showToast(`Paciente ${ticket.code} marcado como ausente.`);
+      loadTickets();
+    } catch (err: any) {
+      alert(err.message || 'Erro ao marcar ausente.');
+    }
+  };
+
+  const handleExportCsv = async () => {
+    try {
+      await ticketService.exportQueue('csv', {
+        status: statusFilter === 'ALL' ? undefined : statusFilter,
+        specialty: selectedSpecialty === 'ALL' ? undefined : selectedSpecialty,
+        room: selectedRoom === 'ALL' ? undefined : selectedRoom,
+        date: queueDate || undefined,
+        search: searchTerm.trim() || undefined,
+      });
+      showToast('Download do relatório CSV iniciado!');
+    } catch (err: any) {
+      alert(err.message || 'Erro ao exportar lista de fila.');
+    }
   };
 
   const handleTestSound = () => {
@@ -214,48 +181,14 @@ export const QueueListPage: React.FC<QueueListPageProps> = ({ onNavigate }) => {
     };
     soundService.announceCall(testData);
     callBroadcastService.emitCall(testData);
-    setToastMsg('Sinal sonoro e voz de teste emitidos com sucesso!');
-    setTimeout(() => setToastMsg(null), 4000);
+    showToast('Sinal sonoro e voz de teste emitidos no painel!');
   };
 
-  const showToast = (msg: string) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 3000);
-  };
-
-  const filteredList = mockModernQueueList.filter((item) => {
-    // Status tab filter
-    if (statusFilter === 'AGUARDANDO' && item.status !== 'Aguardando') return false;
-    if (statusFilter === 'EM_ATENDIMENTO' && item.status !== 'Em Atendimento') return false;
-    if (statusFilter === 'ATENDIDOS' && item.status !== 'Atendido') return false;
-    if (statusFilter === 'AUSENTES' && item.status !== 'Ausente') return false;
-
-    // Search filter
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      const matchSearch =
-        item.name.toLowerCase().includes(term) ||
-        item.code.toLowerCase().includes(term) ||
-        item.docInfo.includes(term);
-      if (!matchSearch) return false;
-    }
-
-    // Specialty filter
-    if (selectedSpecialty !== 'ALL' && !item.specialty.includes(selectedSpecialty)) {
-      return false;
-    }
-
-    // Room filter
-    if (selectedRoom !== 'ALL' && !item.room.includes(selectedRoom)) {
-      return false;
-    }
-
-    return true;
-  });
+  const nextImmediate = waitingQueue[0] || null;
 
   return (
-    <div className="queue-list-page">
-      {/* Toast de notificação sonora */}
+    <div className="queue-page">
+      {/* Toast de Notificação */}
       {toastMsg && (
         <div style={{
           position: 'fixed',
@@ -263,7 +196,7 @@ export const QueueListPage: React.FC<QueueListPageProps> = ({ onNavigate }) => {
           right: '20px',
           backgroundColor: '#065f46',
           color: '#ffffff',
-          padding: '1rem 1.5rem',
+          padding: '0.9rem 1.4rem',
           borderRadius: '12px',
           boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
           zIndex: 9999,
@@ -271,6 +204,7 @@ export const QueueListPage: React.FC<QueueListPageProps> = ({ onNavigate }) => {
           alignItems: 'center',
           gap: '0.75rem',
           fontWeight: 700,
+          animation: 'fadeIn 0.2s ease-out'
         }}>
           <Volume2 size={20} />
           {toastMsg}
@@ -280,24 +214,29 @@ export const QueueListPage: React.FC<QueueListPageProps> = ({ onNavigate }) => {
       {/* ================= HEADER ================= */}
       <header className="queue-header-row">
         <div>
-          <div className="page-breadcrumb">
-            Recepção &amp; Triagem &gt; Acolhimento Diário
+          <div className="queue-badge-live">
+            <span className="dot"></span>
+            Acolhimento Ativo • WebSocket Sincronizado
           </div>
-          <div className="queue-title-badge-group">
-            <h1 className="page-title" style={{ margin: 0 }}>
-              Fila de Atendimento
-            </h1>
-            <span className="queue-pacientes-badge">
-              <span className="dot"></span>
-              24 pacientes na fila hoje
-            </span>
-          </div>
+
+          <h1 className="page-title" style={{ marginTop: '0.2rem', marginBottom: 0 }}>
+            Gerenciamento da Fila de Atendimento
+          </h1>
+
+          <p className="page-subtitle" style={{ margin: '0.15rem 0 0' }}>
+            Controle de fluxo de chamadas, acolhimento humanizado e triagem clínica do SUS.
+          </p>
         </div>
 
         <div className="queue-header-actions">
-          <button className="btn-header-outline">
-            <SlidersHorizontal size={15} color="#64748b" />
-            Configurar Salas
+          <button className="btn-header-outline" onClick={handleExportCsv} title="Exportar dados filtrados em planilha CSV">
+            <Download size={15} color="#0284c7" />
+            Exportar CSV
+          </button>
+
+          <button className="btn-header-outline" onClick={() => loadTickets()}>
+            <RotateCcw size={15} color="#64748b" />
+            Atualizar
           </button>
 
           <button
@@ -317,34 +256,46 @@ export const QueueListPage: React.FC<QueueListPageProps> = ({ onNavigate }) => {
             <Search size={16} />
             <input
               type="text"
-              placeholder="Buscar por Paciente, CPF ou Cartão SUS..."
+              placeholder="Buscar por Paciente, CPF ou Número da Senha..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
             />
           </div>
 
           <select
             className="queue-select-filter"
             value={selectedSpecialty}
-            onChange={(e) => setSelectedSpecialty(e.target.value)}
+            onChange={(e) => {
+              setSelectedSpecialty(e.target.value);
+              setCurrentPage(1);
+            }}
           >
             <option value="ALL">Todas as Especialidades</option>
             <option value="Clínico">Clínico Geral</option>
             <option value="Pediatria">Pediatria</option>
             <option value="Ginecologia">Ginecologia</option>
             <option value="Odontologia">Odontologia</option>
+            <option value="Enfermagem">Enfermagem</option>
+            <option value="Vacinação">Vacinação</option>
           </select>
 
           <select
             className="queue-select-filter"
             value={selectedRoom}
-            onChange={(e) => setSelectedRoom(e.target.value)}
+            onChange={(e) => {
+              setSelectedRoom(e.target.value);
+              setCurrentPage(1);
+            }}
           >
             <option value="ALL">Todos os Consultórios</option>
-            <option value="Consultório 01">Consultório 01</option>
-            <option value="Consultório 02">Consultório 02</option>
-            <option value="Consultório 03">Consultório 03</option>
-            <option value="Sala 04">Sala 04</option>
+            {rooms.map((r) => (
+              <option key={r.id} value={r.name}>
+                {r.name}
+              </option>
+            ))}
           </select>
 
           <div className="queue-date-pill">
@@ -352,7 +303,10 @@ export const QueueListPage: React.FC<QueueListPageProps> = ({ onNavigate }) => {
             <input
               type="date"
               value={queueDate}
-              onChange={(e) => setQueueDate(e.target.value)}
+              onChange={(e) => {
+                setQueueDate(e.target.value);
+                setCurrentPage(1);
+              }}
               className="queue-date-input"
               title="Filtrar fila por data (dia, mês e ano)"
             />
@@ -362,101 +316,101 @@ export const QueueListPage: React.FC<QueueListPageProps> = ({ onNavigate }) => {
         {/* Sub-linha de filtros de status */}
         <div className="queue-filters-bottom-row">
           <div className="status-filter-pills">
-            <span className="filter-label-prefix">FILTRAR:</span>
+            <span className="filter-label-prefix">STATUS:</span>
 
             <button
               className={`status-tab-pill ${statusFilter === 'ALL' ? 'active' : ''}`}
-              onClick={() => setStatusFilter('ALL')}
+              onClick={() => { setStatusFilter('ALL'); setCurrentPage(1); }}
             >
-              Todos (24)
+              Todos ({totalCount})
             </button>
 
             <button
               className={`status-tab-pill ${statusFilter === 'AGUARDANDO' ? 'active' : ''}`}
-              onClick={() => setStatusFilter('AGUARDANDO')}
+              onClick={() => { setStatusFilter('AGUARDANDO'); setCurrentPage(1); }}
             >
               <span className="pill-dot" style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#ca8a04' }}></span>
-              Aguardando (12)
+              Aguardando
+            </button>
+
+            <button
+              className={`status-tab-pill ${statusFilter === 'CHAMANDO' ? 'active' : ''}`}
+              onClick={() => { setStatusFilter('CHAMANDO'); setCurrentPage(1); }}
+            >
+              <span className="pill-dot" style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#0284c7' }}></span>
+              Chamando
             </button>
 
             <button
               className={`status-tab-pill ${statusFilter === 'EM_ATENDIMENTO' ? 'active' : ''}`}
-              onClick={() => setStatusFilter('EM_ATENDIMENTO')}
+              onClick={() => { setStatusFilter('EM_ATENDIMENTO'); setCurrentPage(1); }}
             >
               <span className="pill-dot" style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#2563eb' }}></span>
-              Em Atendimento (3)
+              Em Atendimento
             </button>
 
             <button
-              className={`status-tab-pill ${statusFilter === 'ATENDIDOS' ? 'active' : ''}`}
-              onClick={() => setStatusFilter('ATENDIDOS')}
+              className={`status-tab-pill ${statusFilter === 'FINALIZADO' ? 'active' : ''}`}
+              onClick={() => { setStatusFilter('FINALIZADO'); setCurrentPage(1); }}
             >
               <span className="pill-dot" style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#16a34a' }}></span>
-              Atendidos (7)
+              Atendidos
             </button>
 
             <button
-              className={`status-tab-pill ${statusFilter === 'AUSENTES' ? 'active' : ''}`}
-              onClick={() => setStatusFilter('AUSENTES')}
+              className={`status-tab-pill ${statusFilter === 'AUSENTE' ? 'active' : ''}`}
+              onClick={() => { setStatusFilter('AUSENTE'); setCurrentPage(1); }}
             >
               <span className="pill-dot" style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#dc2626' }}></span>
-              Ausentes (2)
+              Ausentes
             </button>
           </div>
 
           <div className="sync-status-text">
             <RotateCcw size={13} color="#16a34a" />
-            <span>Sincronizado há 15s</span>
+            <span>Sincronização em Tempo Real</span>
           </div>
         </div>
       </div>
 
       {/* ================= BANNER PRÓXIMO IMEDIATO ================= */}
-      <div className="next-immediate-banner">
-        <div className="next-immediate-left">
-          <div className="next-immediate-icon-box">
-            <Volume2 size={18} />
-            <span>FILA</span>
-          </div>
-
-          <div className="next-immediate-meta">
-            <div className="next-immediate-badge-row">
-              <span className="badge-immediate">PRÓXIMO IMEDIATO</span>
-              <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Aguardando há 18 min</span>
+      {nextImmediate && (
+        <div className="next-immediate-banner">
+          <div className="next-immediate-left">
+            <div className="next-immediate-icon-box">
+              <Volume2 size={18} />
+              <span>FILA</span>
             </div>
 
-            <div className="next-immediate-patient">
-              <span className="next-immediate-code">A123</span>
-              <span className="next-immediate-name">Maria Aparecida dos Santos</span>
-              <span style={{ fontSize: '0.68rem', fontWeight: 800, padding: '0.15rem 0.5rem', borderRadius: 999, backgroundColor: '#eff6ff', color: '#1d4ed8' }}>
-                Idoso 65+
-              </span>
+            <div className="next-immediate-meta">
+              <div className="next-immediate-badge-row">
+                <span className="badge-immediate">PRÓXIMO IMEDIATO (LEI SUS)</span>
+                <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                  Aguardando há {Math.max(1, Math.round((Date.now() - new Date(nextImmediate.createdAt).getTime()) / 60000))} min
+                </span>
+              </div>
+
+              <div className="next-immediate-patient">
+                <span className="next-immediate-code">{nextImmediate.code}</span>
+                <span className="next-immediate-name">{nextImmediate.patientName}</span>
+                <span style={{ fontSize: '0.68rem', fontWeight: 800, padding: '0.15rem 0.5rem', borderRadius: 999, backgroundColor: '#eff6ff', color: '#1d4ed8' }}>
+                  {nextImmediate.priorityLabel || nextImmediate.priority}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="next-immediate-actions">
-          <button className="btn-reorder" onClick={() => alert('Ordem da fila reordenada conforme prioridades clínicas.')}>
-            <ArrowRightLeft size={14} />
-            Reordenar
-          </button>
-
-          <button
-            className="btn-call-immediate"
-            onClick={() =>
-              handleCallPatient({
-                code: 'A123',
-                name: 'Maria Aparecida dos Santos',
-                room: 'Consultório 01',
-                priority: 'Prioritário',
-              })
-            }
-          >
-            <Volume2 size={16} />
-            Chamar Próximo (A123)
-          </button>
+          <div className="next-immediate-actions">
+            <button
+              className="btn-call-immediate"
+              onClick={() => handleCallPatient(nextImmediate)}
+            >
+              <Volume2 size={16} />
+              Chamar Próximo ({nextImmediate.code})
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ================= TABELA COMPLETA ================= */}
       <div className="queue-table-card-wrapper">
@@ -475,170 +429,173 @@ export const QueueListPage: React.FC<QueueListPageProps> = ({ onNavigate }) => {
               </tr>
             </thead>
             <tbody>
-              {filteredList.map((item) => (
-                <tr key={item.id}>
-                  <td>
-                    <div className="ticket-code-modern-cell">
-                      <div className={`ticket-side-indicator ${item.codeIndicator}`}></div>
-                      <div className="ticket-code-text-group">
-                        <span className="ticket-code-number">{item.code}</span>
-                        <span className={`ticket-code-priority-label ${item.priorityTagColor}`}>
-                          {item.priorityTag}
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                        <span style={{ fontWeight: 800, color: '#0f172a' }}>{item.name}</span>
-                        {item.patientBadge && (
-                          <span style={{
-                            fontSize: '0.65rem',
-                            fontWeight: 800,
-                            padding: '0.15rem 0.45rem',
-                            borderRadius: 999,
-                            backgroundColor: item.patientBadge.variant === 'blue' ? '#eff6ff' : '#ecfeff',
-                            color: item.patientBadge.variant === 'blue' ? '#1d4ed8' : '#0891b2',
-                          }}>
-                            {item.patientBadge.text}
-                          </span>
-                        )}
-                      </div>
-                      <span style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.15rem' }}>
-                        {item.docInfo}
-                      </span>
-                    </div>
-                  </td>
-
-                  <td>
-                    <span style={{ color: '#334155', fontWeight: 600 }}>{item.age}</span>
-                  </td>
-
-                  <td>
-                    <span className="specialty-badge-pill">
-                      {item.specialtyIcon === 'clinico' && <Stethoscope size={13} color="#2563eb" />}
-                      {item.specialtyIcon === 'odonto' && <Smile size={13} color="#7c3aed" />}
-                      {item.specialtyIcon === 'gineco' && <Baby size={13} color="#db2777" />}
-                      {item.specialtyIcon === 'pediatria' && <Baby size={13} color="#16a34a" />}
-                      {item.specialty}
-                    </span>
-                  </td>
-
-                  <td>
-                    <div className="arrival-waiting-cell">
-                      <span className="arrival-time-bold">{item.arrivalTime}</span>
-                      <span className={`arrival-waiting-tag ${item.waitingTimeType}`}>
-                        {item.waitingTimeText}
-                      </span>
-                    </div>
-                  </td>
-
-                  <td>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontWeight: 700, color: '#0f172a' }}>{item.room}</span>
-                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{item.doctor}</span>
-                    </div>
-                  </td>
-
-                  <td>
-                    <span className={`status-pill-badge ${item.statusClass}`}>
-                      <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'currentColor' }}></span>
-                      {item.status}
-                    </span>
-                  </td>
-
-                  <td style={{ textAlign: 'right' }}>
-                    {item.actionType === 'call' && (
-                      <button
-                        className="table-action-btn-circle green"
-                        title="Chamar paciente"
-                        onClick={() =>
-                          handleCallPatient({
-                            code: item.code,
-                            name: item.name,
-                            room: item.room,
-                            priority: item.priorityTag,
-                          })
-                        }
-                      >
-                        <Volume2 size={15} />
-                      </button>
-                    )}
-
-                    {item.actionType === 'in_progress' && (
-                      <div style={{ display: 'inline-flex', gap: '0.35rem' }}>
-                        <button
-                          className="table-action-btn-circle"
-                          title="Finalizar atendimento"
-                          onClick={() => showToast(`Atendimento de ${item.code} finalizado.`)}
-                        >
-                          <Check size={14} />
-                        </button>
-                        <button
-                          className="table-action-btn-circle"
-                          title="Encaminhar para exame"
-                          onClick={() => alert(`Encaminhamento de ${item.name}`)}
-                        >
-                          <ArrowRightLeft size={14} />
-                        </button>
-                      </div>
-                    )}
-
-                    {item.actionType === 'record' && (
-                      <button
-                        className="table-action-btn-circle blue"
-                        title="Visualizar prontuário"
-                        onClick={() => alert(`Prontuário médico de ${item.name}`)}
-                      >
-                        <FileSpreadsheet size={15} />
-                      </button>
-                    )}
-
-                    {item.actionType === 'absent' && (
-                      <button
-                        className="table-action-btn-circle"
-                        title="Rechamar paciente ausente"
-                        onClick={() =>
-                          handleCallPatient({
-                            code: item.code,
-                            name: item.name,
-                            room: item.room,
-                            priority: item.priorityTag,
-                            isRecall: true,
-                          })
-                        }
-                      >
-                        <RotateCcw size={14} />
-                      </button>
-                    )}
+              {isLoading ? (
+                <tr>
+                  <td colSpan={8} style={{ textAlign: 'center', padding: '2.5rem', color: '#64748b' }}>
+                    Carregando fila de pacientes...
                   </td>
                 </tr>
-              ))}
+              ) : tickets.length === 0 ? (
+                <tr>
+                  <td colSpan={8} style={{ textAlign: 'center', padding: '2.5rem', color: '#94a3b8' }}>
+                    Nenhum paciente encontrado com os filtros selecionados.
+                  </td>
+                </tr>
+              ) : (
+                tickets.map((item) => (
+                  <tr key={item.id}>
+                    <td>
+                      <div className="ticket-code-modern-cell">
+                        <div className={`ticket-side-indicator ${item.priority === 'URGENTE' ? 'red' : item.priority === 'PREFERENCIAL' ? 'blue' : 'green'}`}></div>
+                        <div className="ticket-code-text-group">
+                          <span className="ticket-code-number">{item.code}</span>
+                          <span className={`ticket-code-priority-label ${item.priority === 'URGENTE' ? 'red' : item.priority === 'PREFERENCIAL' ? 'blue' : 'green'}`}>
+                            {item.priorityLabel || item.priority}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+
+                    <td>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontWeight: 800, color: '#0f172a' }}>{item.patientName}</span>
+                        <span style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.15rem' }}>
+                          CPF: {item.cpf || 'Não informado'} • SUS: {item.cartaoSus || '---'}
+                        </span>
+                      </div>
+                    </td>
+
+                    <td>
+                      <span style={{ color: '#334155', fontWeight: 600 }}>{item.age ? `${item.age} anos` : '---'}</span>
+                    </td>
+
+                    <td>
+                      <span className="specialty-badge-pill">
+                        {item.service.includes('CLINICO') && <Stethoscope size={13} color="#2563eb" />}
+                        {item.service.includes('ODONTO') && <Smile size={13} color="#7c3aed" />}
+                        {item.service.includes('GINECO') && <Baby size={13} color="#db2777" />}
+                        {item.service.includes('PEDIA') && <Baby size={13} color="#16a34a" />}
+                        {item.serviceLabel || item.service}
+                      </span>
+                    </td>
+
+                    <td>
+                      <div className="arrival-waiting-cell">
+                        <span className="arrival-time-bold">
+                          {new Date(item.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        <span className="arrival-waiting-tag green">
+                          {Math.max(1, Math.round((Date.now() - new Date(item.createdAt).getTime()) / 60000))} min
+                        </span>
+                      </div>
+                    </td>
+
+                    <td>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontWeight: 700, color: '#0f172a' }}>{item.room || item.serviceLabel}</span>
+                        <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{item.professional || 'A definir'}</span>
+                      </div>
+                    </td>
+
+                    <td>
+                      <span className={`status-pill-badge ${item.status === 'AGUARDANDO' ? 'aguardando' : item.status === 'CHAMANDO' || item.status === 'EM_ATENDIMENTO' ? 'atendimento' : item.status === 'FINALIZADO' ? 'atendido' : 'ausente'}`}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'currentColor' }}></span>
+                        {item.status}
+                      </span>
+                    </td>
+
+                    <td style={{ textAlign: 'right' }}>
+                      <div style={{ display: 'inline-flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
+                        {item.status === 'AGUARDANDO' && (
+                          <button
+                            className="table-action-btn-circle green"
+                            title="Chamar paciente"
+                            onClick={() => handleCallPatient(item)}
+                          >
+                            <Volume2 size={15} />
+                          </button>
+                        )}
+
+                        {item.status === 'CHAMANDO' && (
+                          <>
+                            <button
+                              className="table-action-btn-circle"
+                              title="Rechamar no painel"
+                              onClick={() => handleCallPatient(item, true)}
+                            >
+                              <RotateCcw size={14} />
+                            </button>
+                            <button
+                              className="table-action-btn-circle green"
+                              title="Iniciar atendimento clínico"
+                              onClick={() => handleStartAttendance(item)}
+                            >
+                              <Play size={14} />
+                            </button>
+                            <button
+                              className="table-action-btn-circle red"
+                              title="Marcar como ausente"
+                              onClick={() => handleMarkAbsent(item)}
+                            >
+                              <UserX size={14} />
+                            </button>
+                          </>
+                        )}
+
+                        {item.status === 'EM_ATENDIMENTO' && (
+                          <button
+                            className="table-action-btn-circle green"
+                            title="Finalizar atendimento"
+                            onClick={() => handleFinishAttendance(item)}
+                          >
+                            <Check size={14} />
+                          </button>
+                        )}
+
+                        {item.status === 'AUSENTE' && (
+                          <button
+                            className="table-action-btn-circle"
+                            title="Rechamar paciente ausente"
+                            onClick={() => handleCallPatient(item, true)}
+                          >
+                            <RotateCcw size={14} />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
 
         <div className="queue-table-footer-row">
           <div>
-            Mostrando <strong>1-{filteredList.length}</strong> de <strong>24</strong> pacientes • Tempo médio de espera hoje: <strong style={{ color: '#16a34a' }}>16 min</strong>
+            Mostrando <strong>{tickets.length}</strong> de <strong>{totalCount}</strong> paciente(s)
           </div>
 
           <div className="pagination-controls">
             <button
               className="pagination-btn"
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage <= 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             >
               <ChevronLeft size={14} />
             </button>
-            <button className={`pagination-btn ${currentPage === 1 ? 'active' : ''}`} onClick={() => setCurrentPage(1)}>1</button>
-            <button className={`pagination-btn ${currentPage === 2 ? 'active' : ''}`} onClick={() => setCurrentPage(2)}>2</button>
-            <button className={`pagination-btn ${currentPage === 3 ? 'active' : ''}`} onClick={() => setCurrentPage(3)}>3</button>
-            <button className={`pagination-btn ${currentPage === 4 ? 'active' : ''}`} onClick={() => setCurrentPage(4)}>4</button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).slice(0, 5).map((page) => (
+              <button
+                key={page}
+                className={`pagination-btn ${currentPage === page ? 'active' : ''}`}
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
+              </button>
+            ))}
             <button
               className="pagination-btn"
-              onClick={() => setCurrentPage(Math.min(4, currentPage + 1))}
+              disabled={currentPage >= totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             >
               <ChevronRight size={14} />
             </button>
@@ -655,7 +612,7 @@ export const QueueListPage: React.FC<QueueListPageProps> = ({ onNavigate }) => {
           <div>
             <div className="tv-connected-title">Painel de TV da Recepção Conectado</div>
             <div className="tv-connected-subtitle">
-              Transmitindo em tempo real para TV Samsung Sala de Espera A (IP: 192.168.1.104)
+              Sincronizado em tempo real com WebSocket e pronto para transmissão Smart TV sem fio.
             </div>
           </div>
         </div>

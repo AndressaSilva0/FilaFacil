@@ -10,11 +10,15 @@ import {
   Maximize2,
   Minimize2,
   Sparkles,
+  Cast,
 } from 'lucide-react';
 import Logo from '../components/Logo';
 import type { InternalScreen } from '../components/AppLayout';
 import { soundService } from '../services/soundService';
 import { callBroadcastService } from '../services/callBroadcastService';
+import CastModal from '../components/CastModal';
+import { castService } from '../services/castService';
+import { tvService } from '../services/tvService';
 import '../styles/tv-panel.css';
 
 interface TVPanelPageProps {
@@ -105,6 +109,55 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
   const [isFlashing, setIsFlashing] = useState(false);
   const [audioUnlocked, setAudioUnlocked] = useState(false);
   const [upcomingTickets, setUpcomingTickets] = useState<NextTicket[]>(INITIAL_UPCOMING_TICKETS);
+  const [isCastModalOpen, setIsCastModalOpen] = useState(false);
+  const [isCasting, setIsCasting] = useState(castService.getState() === 'connected');
+
+  useEffect(() => {
+    const unsub = castService.onStateChange((state) => {
+      setIsCasting(state === 'connected');
+    });
+    return unsub;
+  }, []);
+
+  // Carrega chamada ativa e próximas senhas reais da API do Back-end
+  useEffect(() => {
+    tvService.getCurrentCall().then((call) => {
+      if (call) {
+        setCurrentCall({
+          code: call.code,
+          patientName: call.patientName,
+          room: call.room,
+          priorityLabel: call.priorityLabel || 'Atendimento Convencional (Normal)',
+          priorityType: (call.priority || '').toLowerCase().includes('urg')
+            ? 'urgente'
+            : (call.priority || '').toLowerCase().includes('pref')
+            ? 'preferencial'
+            : 'normal',
+          specialty: call.serviceLabel || call.service || 'Clínico Geral',
+          doctor: call.doctor || call.professional || 'Consultório Designado',
+        });
+      }
+    }).catch(() => {});
+
+    tvService.getUpcoming().then((upcoming) => {
+      if (upcoming && upcoming.length > 0) {
+        setUpcomingTickets(
+          upcoming.map((u) => ({
+            code: u.code,
+            priorityType: (u.priority || '').toLowerCase().includes('urg')
+              ? 'urgente'
+              : (u.priority || '').toLowerCase().includes('pref')
+              ? 'preferencial'
+              : 'normal',
+            priorityLabel: u.priorityLabel || u.priority,
+            name: u.patientName,
+            details: `${u.serviceLabel || u.service} • Fila SUS`,
+            estimatedTime: u.estimatedTime || 'Em breve',
+          }))
+        );
+      }
+    }).catch(() => {});
+  }, []);
 
   const [currentCall, setCurrentCall] = useState({
     code: 'A123',
@@ -349,6 +402,20 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
             <div className="tv-clock-date">{currentDate || '17 DE SETEMBRO DE 2026'}</div>
           </div>
 
+          {/* Botão de Transmissão para Smart TV */}
+          <button
+            className="tv-test-audio-btn"
+            onClick={() => setIsCastModalOpen(true)}
+            title="Transmitir este painel para Smart TV / Telão (Sem Espelhar)"
+            style={{
+              backgroundColor: isCasting ? '#059669' : 'rgba(255, 255, 255, 0.1)',
+              borderColor: isCasting ? '#10b981' : 'rgba(255, 255, 255, 0.2)',
+            }}
+          >
+            <Cast size={16} />
+            <span>{isCasting ? 'Transmitindo' : 'Transmitir p/ TV'}</span>
+          </button>
+
           {/* Botão de teste rápido de som no cabeçalho da TV */}
           <button
             className="tv-test-audio-btn"
@@ -533,6 +600,12 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
           Voltar ao Sistema
         </button>
       </footer>
+
+      {/* Modal de Transmissão para Smart TV */}
+      <CastModal
+        isOpen={isCastModalOpen}
+        onClose={() => setIsCastModalOpen(false)}
+      />
     </div>
   );
 };
