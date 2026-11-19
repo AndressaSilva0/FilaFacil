@@ -131,10 +131,10 @@ export const CastModal: React.FC<CastModalProps> = ({
             </div>
             <div>
               <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f2d59' }}>
-                Transmitir para Televisão / Painel
+                Conectar à Smart TV / Telão
               </h3>
               <p style={{ margin: '0.15rem 0 0', fontSize: '0.8rem', color: '#64748b' }}>
-                Envie a chamada para a sala de espera sem espelhar seu computador
+                Exiba o painel de senhas na sala de espera sem travar ou espelhar sua tela
               </p>
             </div>
           </div>
@@ -195,7 +195,7 @@ export const CastModal: React.FC<CastModalProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Radio size={18} color="#16a34a" className="animate-pulse" />
               <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#166534' }}>
-                Conectado e transmitindo para a TV!
+                Conectado ao Telão / Smart TV!
               </span>
             </div>
             <button
@@ -212,7 +212,7 @@ export const CastModal: React.FC<CastModalProps> = ({
                 cursor: 'pointer',
               }}
             >
-              Parar Transmissão
+              Desconectar Telão
             </button>
           </div>
         )}

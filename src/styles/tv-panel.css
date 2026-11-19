@@ -566,25 +566,6 @@
   box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
 }
 
-.tv-audio-unlock-banner {
-  background: linear-gradient(90deg, #065f46 0%, #0d9488 100%);
-  color: #ffffff;
-  padding: 0.75rem 1.5rem;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-  cursor: pointer;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-  animation: tv-pulse-banner 2s infinite;
-}
-
-@keyframes tv-pulse-banner {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.008); }
-}
-
 .tv-next-item {
   cursor: pointer;
   transition: all var(--transition-fast);

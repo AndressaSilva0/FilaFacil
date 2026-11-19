@@ -180,12 +180,12 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         </div>
 
         <div className="top-header-right">
-          {/* Botão de Transmitir para Smart TV */}
+          {/* Botão de Conectar com Smart TV / Telão */}
           <button
             className={`btn-header-icon ${isCasting ? 'active-cast' : ''}`}
             onClick={() => setIsCastModalOpen(true)}
-            title={isCasting ? 'Transmitindo para a TV (Ativo)' : 'Transmitir Painel para Smart TV (Sem Espelhar)'}
-            aria-label="Transmitir para Smart TV"
+            title={isCasting ? 'Smart TV Conectada (Ativo)' : 'Conectar Painel à Smart TV / Telão'}
+            aria-label="Conectar Smart TV"
             style={isCasting ? { color: '#16a34a', backgroundColor: '#dcfce7' } : undefined}
           >
             <Cast size={18} />

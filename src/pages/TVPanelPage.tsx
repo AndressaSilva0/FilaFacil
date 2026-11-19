@@ -107,10 +107,33 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isFlashing, setIsFlashing] = useState(false);
-  const [audioUnlocked, setAudioUnlocked] = useState(false);
   const [upcomingTickets, setUpcomingTickets] = useState<NextTicket[]>(INITIAL_UPCOMING_TICKETS);
   const [isCastModalOpen, setIsCastModalOpen] = useState(false);
   const [isCasting, setIsCasting] = useState(castService.getState() === 'connected');
+  const [currentCall, setCurrentCall] = useState({
+    code: 'A123',
+    priorityType: 'normal',
+    priorityLabel: 'Atendimento Convencional (Normal)',
+    room: 'Sala 02 • Consultório Médico',
+    patientName: 'José Maria da Silva',
+    specialty: 'Clínico Geral',
+    doctor: 'Dra. Mariana Vasconcellos • Triagem: 08:30',
+  });
+
+  // Desbloqueia áudio silenciosamente na primeira interação do usuário com a página
+  useEffect(() => {
+    const unlockOnInteraction = () => {
+      soundService.unlockAudio();
+      window.removeEventListener('click', unlockOnInteraction);
+      window.removeEventListener('keydown', unlockOnInteraction);
+    };
+    window.addEventListener('click', unlockOnInteraction);
+    window.addEventListener('keydown', unlockOnInteraction);
+    return () => {
+      window.removeEventListener('click', unlockOnInteraction);
+      window.removeEventListener('keydown', unlockOnInteraction);
+    };
+  }, []);
 
   useEffect(() => {
     const unsub = castService.onStateChange((state) => {
@@ -159,16 +182,6 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
     }).catch(() => {});
   }, []);
 
-  const [currentCall, setCurrentCall] = useState({
-    code: 'A123',
-    priorityType: 'normal',
-    priorityLabel: 'Atendimento Convencional (Normal)',
-    room: 'Sala 02 • Consultório Médico',
-    patientName: 'José Maria da Silva',
-    specialty: 'Clínico Geral',
-    doctor: 'Dra. Mariana Vasconcellos • Triagem: 08:30',
-  });
-
   // Escuta chamadas disparadas em tempo real de qualquer tela ou aba (Dashboard, Fila, etc.)
   useEffect(() => {
     const unsubscribe = callBroadcastService.onCall((callData) => {
@@ -201,13 +214,6 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
 
     return unsubscribe;
   }, [soundEnabled]);
-
-  // Desbloqueia áudio caso o navegador exija interação prévia
-  const handleUnlockAudio = async () => {
-    await soundService.unlockAudio();
-    setAudioUnlocked(true);
-    await soundService.playChime();
-  };
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -370,21 +376,6 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
 
   return (
     <div className="tv-panel-container">
-      {/* Banner de permissão de áudio para navegadores com autoplay restrito */}
-      {!audioUnlocked && (
-        <div
-          className="tv-audio-unlock-banner"
-          onClick={handleUnlockAudio}
-          title="Clique para garantir liberação total do áudio e som do painel"
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <Volume2 size={20} />
-            <strong>Painel de TV Interativo: Clique aqui para ativar o áudio e testar o sino hospitalar</strong>
-          </div>
-          <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>Ativar Som ➜</span>
-        </div>
-      )}
-
       {/* ================= HEADER TV ================= */}
       <header className="tv-header">
         <div className="tv-header-left">
@@ -402,18 +393,18 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
             <div className="tv-clock-date">{currentDate || '17 DE SETEMBRO DE 2026'}</div>
           </div>
 
-          {/* Botão de Transmissão para Smart TV */}
+          {/* Botão de Conexão com Smart TV / Telão */}
           <button
             className="tv-test-audio-btn"
             onClick={() => setIsCastModalOpen(true)}
-            title="Transmitir este painel para Smart TV / Telão (Sem Espelhar)"
+            title="Conectar este painel a uma Smart TV ou Telão na sala de espera"
             style={{
               backgroundColor: isCasting ? '#059669' : 'rgba(255, 255, 255, 0.1)',
               borderColor: isCasting ? '#10b981' : 'rgba(255, 255, 255, 0.2)',
             }}
           >
             <Cast size={16} />
-            <span>{isCasting ? 'Transmitindo' : 'Transmitir p/ TV'}</span>
+            <span>{isCasting ? 'Smart TV Conectada' : 'Conectar Smart TV'}</span>
           </button>
 
           {/* Botão de teste rápido de som no cabeçalho da TV */}
