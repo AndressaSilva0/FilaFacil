@@ -13,7 +13,9 @@ import {
   ChevronRight,
   Volume2,
   Lock,
-  HeartHandshake
+  HeartHandshake,
+  Menu,
+  X,
 } from 'lucide-react';
 import Logo from '../components/Logo';
 import { soundService } from '../services/soundService';
@@ -29,6 +31,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onOpenTvPanel,
 }) => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -103,13 +106,57 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               Acessar Sistema
             </button>
             <button 
-              className="btn-landing-cta"
+              className="btn-landing-cta hide-on-tablet"
               onClick={() => showToast('Demonstração agendada com a equipe!')}
             >
               Agendar Demonstração
             </button>
+            <button
+              type="button"
+              className="btn-mobile-menu-toggle"
+              onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+              aria-label={isMobileMenuOpen ? 'Fechar menu de navegação' : 'Abrir menu de navegação'}
+            >
+              {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
           </div>
         </div>
+
+        {/* Menu Dropdown Mobile */}
+        {isMobileMenuOpen && (
+          <div className="landing-mobile-menu">
+            <ul className="landing-mobile-nav-links">
+              <li><a href="#inicio" onClick={() => setIsMobileMenuOpen(false)}>Início</a></li>
+              <li><a href="#como-funciona" onClick={() => setIsMobileMenuOpen(false)}>Como funciona</a></li>
+              <li><a href="#beneficios" onClick={() => setIsMobileMenuOpen(false)}>Benefícios SUS</a></li>
+              <li><a href="#painel-tv" onClick={() => setIsMobileMenuOpen(false)}>Painel de TV</a></li>
+              <li><a href="#depoimentos" onClick={() => setIsMobileMenuOpen(false)}>Depoimentos</a></li>
+            </ul>
+
+            <div className="landing-mobile-menu-actions">
+              <button 
+                className="btn-landing-login"
+                style={{ width: '100%', justifyContent: 'center' }}
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  if (onOpenSystem) onOpenSystem();
+                }}
+              >
+                Acessar Sistema
+              </button>
+              <button 
+                className="btn-landing-cta"
+                style={{ width: '100%', justifyContent: 'center' }}
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  showToast('Demonstração agendada com a equipe!');
+                }}
+              >
+                Agendar Demonstração
+              </button>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* ---------------- 2. HERO SECTION ---------------- */}

@@ -94,6 +94,77 @@
   transform: translateY(-1px);
 }
 
+.btn-mobile-menu-toggle {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--border-medium);
+  cursor: pointer;
+  color: var(--color-blue-deep);
+  padding: 0.45rem;
+  border-radius: var(--radius-md);
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.btn-mobile-menu-toggle:hover {
+  background-color: var(--color-gray-bg);
+  border-color: var(--color-blue-ubs);
+}
+
+.landing-mobile-menu {
+  display: none;
+  background-color: #ffffff;
+  border-top: 1px solid var(--border-subtle);
+  padding: 1.25rem 1rem 1.5rem;
+  animation: fadeInDown 0.25s ease-out;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.landing-mobile-nav-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  padding: 0;
+}
+
+.landing-mobile-nav-links a {
+  text-decoration: none;
+  color: var(--color-blue-deep);
+  font-size: 0.95rem;
+  font-weight: 600;
+  display: block;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.landing-mobile-nav-links a:hover {
+  background-color: var(--color-normal-bg);
+  color: var(--color-blue-ubs);
+}
+
+.landing-mobile-menu-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* ---------------- HERO SECTION ---------------- */
 .hero-section {
   padding: 3.5rem 2rem 4.5rem;
@@ -874,11 +945,32 @@
 }
 
 /* ---------------- RESPONSIVENESS ---------------- */
-@media (max-width: 1024px) {
+@media (max-width: 960px) {
+  .landing-nav-links {
+    display: none;
+  }
+
+  .btn-mobile-menu-toggle {
+    display: inline-flex;
+  }
+
+  .landing-mobile-menu {
+    display: block;
+  }
+
+  .hide-on-tablet {
+    display: none;
+  }
+
+  .landing-header {
+    padding: 0.85rem 1.25rem;
+  }
+
   .hero-section {
     grid-template-columns: 1fr;
     text-align: center;
     gap: 3rem;
+    padding: 3rem 1.5rem 4rem;
   }
 
   .hero-description {
@@ -891,57 +983,330 @@
 
   .hero-stats-row {
     justify-content: center;
+    flex-wrap: wrap;
+    gap: 1.5rem 2rem;
   }
 
   .hero-media-wrapper {
     margin-top: 1rem;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hero-floating-ticket {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    margin: 1.5rem auto 0;
+    width: 100%;
+    max-width: 380px;
+    min-width: 0;
+    box-sizing: border-box;
+    animation: none;
+  }
+
+  .trust-bar-inner {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .features-section {
+    padding: 4.5rem 1.5rem 4rem;
   }
 
   .features-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+
+  .tv-showcase-section {
+    padding: 4.5rem 1.5rem;
   }
 
   .tv-showcase-inner {
     grid-template-columns: 1fr;
+    gap: 3rem;
+    text-align: center;
+  }
+
+  .tv-benefits-list {
+    text-align: left;
+    max-width: 520px;
+    margin: 0 auto 2rem;
+  }
+
+  .btn-tv-link {
+    justify-content: center;
+  }
+
+  .tv-frame-mockup {
+    max-width: 580px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .testimonials-section {
+    padding: 4.5rem 1.5rem;
   }
 
   .testimonials-grid {
     grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .final-cta-section {
+    padding: 4.5rem 1.5rem;
+  }
+
+  .landing-footer {
+    padding: 4rem 1.5rem 2rem;
   }
 
   .landing-footer-inner {
     grid-template-columns: repeat(2, 1fr);
+    gap: 2.5rem;
   }
 }
 
 @media (max-width: 640px) {
-  .landing-nav-links {
-    display: none;
+  .landing-header {
+    padding: 0.75rem 1rem;
+  }
+
+  .btn-landing-login {
+    padding: 0.45rem 0.85rem;
+    font-size: 0.8rem;
+  }
+
+  .hero-section {
+    padding: 2.5rem 1rem 3.5rem;
+    gap: 2.25rem;
+  }
+
+  .hero-tag-pill {
+    font-size: 0.68rem;
+    padding: 0.3rem 0.7rem;
+    margin-bottom: 1rem;
+    white-space: normal;
+    text-align: center;
   }
 
   .hero-title {
-    font-size: 2.25rem;
+    font-size: clamp(1.85rem, 7vw, 2.45rem);
+    line-height: 1.2;
+    margin-bottom: 1rem;
+  }
+
+  .hero-description {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.75rem;
+  }
+
+  .hero-cta-group {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .btn-hero-primary,
+  .btn-hero-secondary {
+    width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+
+  .hero-stats-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding-top: 1.25rem;
+  }
+
+  .hero-image-card {
+    border-radius: 20px;
+    border-width: 3px;
+  }
+
+  .hero-image-badge {
+    bottom: 0.75rem;
+    left: 0.75rem;
+    right: 0.75rem;
+    font-size: 0.72rem;
+    padding: 0.35rem 0.65rem;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .hero-floating-ticket {
+    max-width: 100%;
+    padding: 1rem;
+    border-radius: 16px;
+  }
+
+  .ticket-data-grid {
+    gap: 0.75rem;
+  }
+
+  .ticket-field-value-code {
+    font-size: 1.2rem;
+  }
+
+  .ticket-field-value-room {
+    font-size: 1rem;
+  }
+
+  .features-section {
+    padding: 3.5rem 1rem;
+  }
+
+  .section-tag-center {
+    font-size: 0.7rem;
+  }
+
+  .section-title-center {
+    font-size: clamp(1.5rem, 5.5vw, 1.95rem);
+    line-height: 1.25;
+  }
+
+  .section-sub-center {
+    font-size: 0.92rem;
+    margin-bottom: 2.25rem;
   }
 
   .features-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
-  .hero-floating-ticket {
-    position: static;
-    margin-top: 1rem;
-    width: 100%;
+  .feature-card {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .tv-showcase-section {
+    padding: 3.5rem 1rem;
+  }
+
+  .tv-content-title {
+    font-size: clamp(1.5rem, 5.5vw, 1.95rem);
+    line-height: 1.25;
+  }
+
+  .tv-content-desc {
+    font-size: 0.92rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .tv-frame-mockup {
+    padding: 0.75rem;
+    border-radius: 18px;
+    border-width: 3px;
+  }
+
+  .tv-screen {
+    padding: 0.85rem;
+    border-radius: 12px;
+  }
+
+  .tv-header-bar {
+    font-size: 0.7rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .tv-main-call-card {
+    padding: 1.25rem 0.75rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .tv-call-ticket-code {
+    font-size: clamp(1.35rem, 5vw, 1.85rem);
+  }
+
+  .tv-call-patient-name {
+    font-size: clamp(0.95rem, 3.5vw, 1.15rem);
+  }
+
+  .tv-call-dest-pill {
+    font-size: 0.72rem;
+    padding: 0.35rem 0.6rem;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .tv-history-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.35rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .tv-history-col {
+    padding: 0.35rem 0.2rem;
+  }
+
+  .tv-ticker-footer {
+    font-size: 0.68rem;
+    padding: 0.45rem;
+    gap: 0.35rem;
+  }
+
+  .testimonials-section {
+    padding: 3.5rem 1rem;
+  }
+
+  .testimonial-card {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .final-cta-section {
+    padding: 3.5rem 1rem;
   }
 
   .final-cta-card {
-    padding: 2.5rem 1.5rem;
+    padding: 2.25rem 1.25rem;
+    border-radius: 18px;
   }
 
   .final-cta-title {
-    font-size: 2rem;
+    font-size: clamp(1.45rem, 5.5vw, 1.95rem);
+    line-height: 1.25;
+  }
+
+  .final-cta-desc {
+    font-size: 0.92rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .final-cta-buttons {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.75rem;
+  }
+
+  .btn-cta-green,
+  .btn-cta-outline-white {
+    width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 0.85rem 1.25rem;
+  }
+
+  .landing-footer {
+    padding: 3rem 1rem 1.5rem;
   }
 
   .landing-footer-inner {
     grid-template-columns: 1fr;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .footer-bottom-bar {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.85rem;
   }
 }
