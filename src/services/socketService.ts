@@ -55,15 +55,19 @@ class SocketService {
       this.socket.on('connect', () => {
         this.isConnected = true;
         // Entra na sala geral da fila
+        this.socket?.emit('join-queue', 'general-queue');
         this.socket?.emit('join:room', 'general-queue');
+        this.notify('connection:change', true);
       });
 
       this.socket.on('disconnect', () => {
         this.isConnected = false;
+        this.notify('connection:change', false);
       });
 
       this.socket.on('connect_error', () => {
         this.isConnected = false;
+        this.notify('connection:change', false);
       });
 
       // Evento: Senha chamada
@@ -138,6 +142,10 @@ class SocketService {
 
   public onQueueUpdated(callback: EventCallback<any>): () => void {
     return this.on('queue:updated', callback);
+  }
+
+  public onConnectionChange(callback: EventCallback<boolean>): () => void {
+    return this.on('connection:change', callback);
   }
 
   public getConnected(): boolean {

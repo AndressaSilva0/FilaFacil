@@ -16,6 +16,7 @@ import Logo from '../components/Logo';
 import type { InternalScreen } from '../components/AppLayout';
 import { soundService } from '../services/soundService';
 import { callBroadcastService } from '../services/callBroadcastService';
+import { socketService, type TicketCalledPayload } from '../services/socketService';
 import CastModal from '../components/CastModal';
 import { castService } from '../services/castService';
 import { tvService } from '../services/tvService';
@@ -110,6 +111,7 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
   const [upcomingTickets, setUpcomingTickets] = useState<NextTicket[]>(INITIAL_UPCOMING_TICKETS);
   const [isCastModalOpen, setIsCastModalOpen] = useState(false);
   const [isCasting, setIsCasting] = useState(castService.getState() === 'connected');
+  const [isSocketConnected, setIsSocketConnected] = useState<boolean>(socketService.getConnected());
   const [currentCall, setCurrentCall] = useState({
     code: 'A123',
     priorityType: 'normal',
@@ -119,6 +121,61 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
     specialty: 'Clínico Geral',
     doctor: 'Dra. Mariana Vasconcellos • Triagem: 08:30',
   });
+
+  // Carrega e atualiza a fila de próximas senhas da UBS
+  const loadUpcomingTickets = () => {
+    tvService.getUpcoming().then((upcoming) => {
+      if (upcoming && upcoming.length > 0) {
+        setUpcomingTickets(
+          upcoming.map((u: any) => ({
+            code: u.code,
+            priorityType: (u.priorityType || u.priority || '').toLowerCase().includes('urg')
+              ? 'urgente'
+              : (u.priorityType || u.priority || '').toLowerCase().includes('pref')
+              ? 'preferencial'
+              : 'normal',
+            priorityLabel: u.priorityLabel || u.priority || 'NORMAL',
+            name: u.patientName || u.name || 'Paciente',
+            details: u.details || `${u.serviceLabel || u.service || 'Clínico Geral'} • Fila SUS`,
+            estimatedTime: u.estimatedTime || 'Em breve',
+          }))
+        );
+      }
+    }).catch(() => {});
+  };
+
+  // Trata chamada de senha em tempo real (via Socket.IO ou Broadcast local)
+  const handleIncomingCall = (callData: any) => {
+    const pStr = (callData.priorityLabel || callData.priority || '').toLowerCase();
+    const isPref = pStr.includes('pref') || pStr.includes('prior') || pStr.includes('80') || pStr.includes('idoso');
+    const isUrg = pStr.includes('urg');
+
+    setCurrentCall({
+      code: callData.code,
+      patientName: callData.patientName,
+      room: callData.room || 'Consultório 01',
+      priorityLabel: callData.priorityLabel || callData.priority || (isUrg ? 'Urgência Manchester' : isPref ? 'Atendimento Preferencial' : 'Atendimento Convencional (Normal)'),
+      priorityType: isUrg ? 'urgente' : isPref ? 'preferencial' : 'normal',
+      specialty: callData.specialty || callData.serviceLabel || 'Atendimento Clínico',
+      doctor: callData.doctor || callData.professional || 'Consultório Designado',
+    });
+
+    setIsFlashing(true);
+    setTimeout(() => setIsFlashing(false), 2500);
+
+    // Reproduz áudio (sino + voz do sintetizador)
+    if (soundEnabled) {
+      soundService.announceCall({
+        code: callData.code,
+        patientName: callData.patientName,
+        room: callData.room || 'Consultório 01',
+        priority: callData.priorityLabel || callData.priority,
+      });
+    }
+
+    // Atualiza lista de próximas senhas na mesma hora
+    loadUpcomingTickets();
+  };
 
   // Desbloqueia áudio silenciosamente na primeira interação do usuário com a página
   useEffect(() => {
@@ -142,7 +199,7 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
     return unsub;
   }, []);
 
-  // Carrega chamada ativa e próximas senhas reais da API do Back-end
+  // Carrega chamada ativa inicial e fila do banco de dados
   useEffect(() => {
     tvService.getCurrentCall().then((call) => {
       if (call) {
@@ -162,57 +219,42 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
       }
     }).catch(() => {});
 
-    tvService.getUpcoming().then((upcoming) => {
-      if (upcoming && upcoming.length > 0) {
-        setUpcomingTickets(
-          upcoming.map((u: any) => ({
-            code: u.code,
-            priorityType: (u.priorityType || u.priority || '').toLowerCase().includes('urg')
-              ? 'urgente'
-              : (u.priorityType || u.priority || '').toLowerCase().includes('pref')
-              ? 'preferencial'
-              : 'normal',
-            priorityLabel: u.priorityLabel || u.priority || 'NORMAL',
-            name: u.patientName || u.name || 'Paciente',
-            details: u.details || `${u.serviceLabel || u.service || 'Clínico Geral'} • Fila SUS`,
-            estimatedTime: u.estimatedTime || 'Em breve',
-          }))
-        );
-      }
-    }).catch(() => {});
+    loadUpcomingTickets();
   }, []);
 
-  // Escuta chamadas disparadas em tempo real de qualquer tela ou aba (Dashboard, Fila, etc.)
+  // Escuta chamadas disparadas em tempo real de qualquer tela, TV, aba ou dispositivo via Socket.IO
   useEffect(() => {
-    const unsubscribe = callBroadcastService.onCall((callData) => {
-      const isPref = (callData.priority || '').toLowerCase().includes('pref') ||
-        (callData.priority || '').toLowerCase().includes('prior');
-
-      setCurrentCall({
-        code: callData.code,
-        patientName: callData.patientName,
-        room: callData.room,
-        priorityLabel: callData.priority || 'Atendimento Convencional (Normal)',
-        priorityType: isPref ? 'preferencial' : 'normal',
-        specialty: 'Atendimento Clínico',
-        doctor: 'Consultório Designado',
-      });
-
-      setIsFlashing(true);
-      setTimeout(() => setIsFlashing(false), 2500);
-
-      // Reproduz o áudio na TV se habilitado
-      if (soundEnabled) {
-        soundService.announceCall({
-          code: callData.code,
-          patientName: callData.patientName,
-          room: callData.room,
-          priority: callData.priority,
-        });
-      }
+    // 1. Escuta chamadas via WebSocket da nuvem (Render)
+    const unsubSocketCall = socketService.onTicketCalled((payload: TicketCalledPayload) => {
+      handleIncomingCall(payload);
     });
 
-    return unsubscribe;
+    // 2. Atualiza fila de espera quando houver mudanças de status no sistema
+    const unsubStatus = socketService.onStatusUpdated(() => {
+      loadUpcomingTickets();
+    });
+
+    const unsubQueue = socketService.onQueueUpdated(() => {
+      loadUpcomingTickets();
+    });
+
+    // 3. Monitora status de conexão WebSocket
+    const unsubConn = socketService.onConnectionChange((connected) => {
+      setIsSocketConnected(connected);
+    });
+
+    // 4. Fallback via BroadcastChannel / localStorage (para abas no mesmo navegador)
+    const unsubBroadcast = callBroadcastService.onCall((callData) => {
+      handleIncomingCall(callData);
+    });
+
+    return () => {
+      unsubSocketCall();
+      unsubStatus();
+      unsubQueue();
+      unsubConn();
+      unsubBroadcast();
+    };
   }, [soundEnabled]);
 
   useEffect(() => {
@@ -388,6 +430,34 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
         </div>
 
         <div className="tv-header-right">
+          {/* Indicador de Conexão WebSocket em Tempo Real */}
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              padding: '0.4rem 0.8rem',
+              borderRadius: '9999px',
+              fontSize: '0.82rem',
+              fontWeight: 600,
+              backgroundColor: isSocketConnected ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+              color: isSocketConnected ? '#34d399' : '#f87171',
+              border: `1px solid ${isSocketConnected ? 'rgba(16, 185, 129, 0.35)' : 'rgba(239, 68, 68, 0.35)'}`,
+            }}
+            title={isSocketConnected ? 'Conectado ao servidor WebSocket via nuvem' : 'Tentando conectar ao servidor WebSocket'}
+          >
+            <span
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: isSocketConnected ? '#10b981' : '#ef4444',
+                boxShadow: isSocketConnected ? '0 0 8px #10b981' : 'none',
+              }}
+            />
+            <span>{isSocketConnected ? 'Ao Vivo (WebSocket)' : 'Reconectando...'}</span>
+          </div>
+
           <div className="tv-clock-box">
             <div className="tv-clock-time">{currentTime || '17 : 36 : 10'}</div>
             <div className="tv-clock-date">{currentDate || '17 DE SETEMBRO DE 2026'}</div>
