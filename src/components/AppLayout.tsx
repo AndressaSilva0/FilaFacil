@@ -86,13 +86,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   }, []);
 
   const profile = userProfile || {
-    name: 'Hiago Zavarize',
-    role: 'Agente de Saúde',
-    unit: 'UBS Central 01',
-    email: 'hiago.zavarize@saude.gov.br',
-    cpf: '429.810.378-15',
-    phone: '(11) 98765-4321',
-    registrationNumber: 'ACS-2024-089',
+    name: 'Operador UBS',
+    role: 'Atendente',
+    unit: 'UBS Central',
+    email: '',
+    cpf: '',
+    phone: '',
+    registrationNumber: '',
     avatarUrl: '/images/avatars/avatar-male-agent.jpg',
   };
 

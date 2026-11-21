@@ -13,17 +13,17 @@ import {
   Cast,
 } from 'lucide-react';
 import Logo from '../components/Logo';
-import type { InternalScreen } from '../components/AppLayout';
 import { soundService } from '../services/soundService';
 import { callBroadcastService } from '../services/callBroadcastService';
 import { socketService, type TicketCalledPayload } from '../services/socketService';
 import CastModal from '../components/CastModal';
 import { castService } from '../services/castService';
 import { tvService } from '../services/tvService';
+import { authService } from '../services/authService';
 import '../styles/tv-panel.css';
 
 interface TVPanelPageProps {
-  onNavigate: (screen: InternalScreen) => void;
+  onNavigate: (screen: any) => void;
 }
 
 interface NextTicket {
@@ -656,9 +656,19 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
           </span>
         </div>
 
-        <button className="tv-back-btn" onClick={() => onNavigate('dashboard')}>
+        <button
+          className="tv-back-btn"
+          onClick={() => {
+            if (authService.isAuthenticated()) {
+              onNavigate('dashboard');
+            } else {
+              onNavigate('login');
+            }
+          }}
+          title={authService.isAuthenticated() ? 'Voltar para o Painel de Atendimento' : 'Ir para a tela de Login'}
+        >
           <ArrowLeft size={16} />
-          Voltar ao Sistema
+          {authService.isAuthenticated() ? 'Voltar ao Sistema' : 'Acessar Sistema'}
         </button>
       </footer>
 
