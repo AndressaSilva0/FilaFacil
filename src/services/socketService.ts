@@ -2,7 +2,10 @@ import { io, Socket } from 'socket.io-client';
 import { callBroadcastService } from './callBroadcastService';
 
 const SOCKET_URL =
-  import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
+  import.meta.env.VITE_SOCKET_URL ||
+  (import.meta.env.VITE_API_URL
+    ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '')
+    : 'http://localhost:3001');
 
 export interface TicketCalledPayload {
   code: string;

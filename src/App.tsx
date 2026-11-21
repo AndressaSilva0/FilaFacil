@@ -35,11 +35,26 @@ const VALID_SCREENS: AppScreen[] = [
 ];
 
 export const App: React.FC = () => {
-  // Inicializa com base no hash da URL se existir (ex: #/dashboard ou #/tv-panel)
+  // Inicializa com base no hash da URL se existir (ex: #/dashboard, #/tv ou #/tv-panel)
   const getScreenFromHash = (): AppScreen => {
-    const hash = window.location.hash.replace(/^#\/?/, '').trim();
-    if (VALID_SCREENS.includes(hash as AppScreen)) {
-      return hash as AppScreen;
+    const raw = window.location.hash.replace(/^#\/?/, '').trim().toLowerCase();
+    
+    // Suporte a sinônimos de navegação rápida e Smart TV
+    if (raw === 'tv' || raw === 'tv-panel' || raw === 'painel' || raw === 'painel-tv') {
+      return 'tv-panel';
+    }
+    if (raw === 'queue' || raw === 'fila') {
+      return 'queue-list';
+    }
+    if (raw === 'add' || raw === 'nova-senha' || raw === 'add-queue') {
+      return 'add-queue';
+    }
+    if (raw === 'dash' || raw === 'dashboard') {
+      return 'dashboard';
+    }
+
+    if (VALID_SCREENS.includes(raw as AppScreen)) {
+      return raw as AppScreen;
     }
     return 'landing';
   };

@@ -165,16 +165,16 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
     tvService.getUpcoming().then((upcoming) => {
       if (upcoming && upcoming.length > 0) {
         setUpcomingTickets(
-          upcoming.map((u) => ({
+          upcoming.map((u: any) => ({
             code: u.code,
-            priorityType: (u.priority || '').toLowerCase().includes('urg')
+            priorityType: (u.priorityType || u.priority || '').toLowerCase().includes('urg')
               ? 'urgente'
-              : (u.priority || '').toLowerCase().includes('pref')
+              : (u.priorityType || u.priority || '').toLowerCase().includes('pref')
               ? 'preferencial'
               : 'normal',
-            priorityLabel: u.priorityLabel || u.priority,
-            name: u.patientName,
-            details: `${u.serviceLabel || u.service} • Fila SUS`,
+            priorityLabel: u.priorityLabel || u.priority || 'NORMAL',
+            name: u.patientName || u.name || 'Paciente',
+            details: u.details || `${u.serviceLabel || u.service || 'Clínico Geral'} • Fila SUS`,
             estimatedTime: u.estimatedTime || 'Em breve',
           }))
         );

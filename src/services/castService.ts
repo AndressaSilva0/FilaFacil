@@ -28,11 +28,7 @@ class CastService {
     if ('PresentationRequest' in window && window.PresentationRequest) {
       try {
         const presentationUrl = `${window.location.origin}${window.location.pathname}#/tv-panel`;
-        this.presentationRequest = new window.PresentationRequest([
-          presentationUrl,
-          '#/tv-panel',
-          '/tv-panel',
-        ]);
+        this.presentationRequest = new window.PresentationRequest([presentationUrl]);
 
         // Monitora disponibilidade de telas na rede local
         if (this.presentationRequest.getAvailability) {

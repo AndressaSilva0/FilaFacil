@@ -25,13 +25,22 @@ export interface TvUpcomingItem {
 
 class TvService {
   public async getCurrentCall(): Promise<TvCallItem | null> {
-    const data = await api.get<{ currentCall: TvCallItem | null }>('/tv/current-call');
-    return data.currentCall;
+    try {
+      const data = await api.get<{ hasCall?: boolean; currentCall: TvCallItem | null }>('/tv/current-call');
+      return data?.currentCall || null;
+    } catch {
+      return null;
+    }
   }
 
   public async getUpcoming(): Promise<TvUpcomingItem[]> {
-    const data = await api.get<{ upcoming: TvUpcomingItem[] }>('/tv/upcoming');
-    return data.upcoming || [];
+    try {
+      const data = await api.get<any>('/tv/upcoming');
+      if (Array.isArray(data)) return data;
+      return data?.upcoming || [];
+    } catch {
+      return [];
+    }
   }
 }
 

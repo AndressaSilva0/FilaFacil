@@ -81,11 +81,19 @@ class TicketService {
     }
   }
 
-  public async callTicket(ticketId: string, roomId?: string, professionalName?: string): Promise<Ticket> {
-    const response = await api.post<{ message: string; ticket: any }>(`/tickets/${ticketId}/call`, {
-      roomId,
+  public async callTicket(ticketId: string, roomIdOrName?: string, professionalName?: string): Promise<Ticket> {
+    const isUuid = roomIdOrName && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(roomIdOrName);
+    const payload: Record<string, any> = {
       professionalName,
-    });
+    };
+    if (isUuid) {
+      payload.roomId = roomIdOrName;
+    } else if (roomIdOrName) {
+      payload.roomId = roomIdOrName;
+      payload.roomName = roomIdOrName;
+    }
+
+    const response = await api.post<{ message: string; ticket: any }>(`/tickets/${ticketId}/call`, payload);
     return this.mapTicket(response.ticket);
   }
 
