@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import type { InternalScreen } from '../components/AppLayout';
 import { authService } from '../services/authService';
-import { resolveAvatarUrl, compressImageFile } from '../utils/avatar';
+import { resolveAvatarUrl, compressImageFile, DEFAULT_AVATAR } from '../utils/avatar';
 import '../styles/profile.css';
 
 export interface UserProfile {
@@ -52,7 +52,11 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   const [cpf, setCpf] = useState(userProfile.cpf);
   const [phone, setPhone] = useState(userProfile.phone);
   const [registrationNumber, setRegistrationNumber] = useState(userProfile.registrationNumber);
-  const [avatarUrl, setAvatarUrl] = useState(userProfile.avatarUrl || '');
+  const [avatarUrl, setAvatarUrl] = useState(
+    userProfile.avatarUrl && !userProfile.avatarUrl.includes('avatar-male-agent.jpg')
+      ? userProfile.avatarUrl
+      : ''
+  );
 
   // Senhas (opcional)
   const [currentPassword, setCurrentPassword] = useState('');
@@ -76,7 +80,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         if (p.cpf) setCpf(p.cpf);
         if (p.phone) setPhone(p.phone);
         if (p.registrationNumber) setRegistrationNumber(p.registrationNumber);
-        if (p.avatarUrl) setAvatarUrl(p.avatarUrl);
+        const cleanAvatar = p.avatarUrl && !p.avatarUrl.includes('avatar-male-agent.jpg')
+          ? p.avatarUrl
+          : '';
+        setAvatarUrl(cleanAvatar);
 
         onUpdateProfile({
           name: p.name || userProfile.name,
@@ -86,7 +93,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           cpf: p.cpf || userProfile.cpf,
           phone: p.phone || userProfile.phone,
           registrationNumber: p.registrationNumber || userProfile.registrationNumber,
-          avatarUrl: p.avatarUrl || userProfile.avatarUrl,
+          avatarUrl: cleanAvatar,
         });
       })
       .catch((err) => {
@@ -94,9 +101,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
       });
   }, []);
 
-  // Presets rápidos de avatar com imagens temáticas de saúde pública
+  // Presets rápidos de avatar com imagens temáticas de saúde pública (silhueta padrão em 1º)
   const avatarPresets = [
-    { id: 'agent-male', url: '/images/avatars/avatar-male-agent.jpg', label: 'Agente Comunitário de Saúde' },
+    { id: 'default-silhouette', url: DEFAULT_AVATAR, label: 'Silhueta Neutra Padrão (Sem Foto)' },
     { id: 'doctor-female', url: '/images/avatars/avatar-female-doctor.jpg', label: 'Dra. Mariana (Médica de Família)' },
     { id: 'doctor-male', url: '/images/avatars/avatar-doctor-portrait.jpg', label: 'Dr. Roberto (Clínico Geral)' },
     { id: 'nurse-teal', url: '/images/avatars/avatar-nurse.svg', label: 'Enfermeira Chefe da Equipe' },
@@ -282,18 +289,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
               <div className="profile-photo-center">
                 <div className="profile-avatar-large-wrap">
                   <div className="profile-avatar-large-inner">
-                    {avatarUrl ? (
-                      <img
-                        src={resolveAvatarUrl(avatarUrl)}
-                        alt={name}
-                        className="profile-avatar-large-img"
-                        onError={(e) => {
-                          e.currentTarget.src = '/images/avatars/avatar-male-agent.jpg';
-                        }}
-                      />
-                    ) : (
-                      <User size={54} color="#64748b" />
-                    )}
+                    <img
+                      src={resolveAvatarUrl(avatarUrl)}
+                      alt={name}
+                      className="profile-avatar-large-img"
+                      onError={(e) => {
+                        e.currentTarget.src = DEFAULT_AVATAR;
+                      }}
+                    />
                   </div>
 
                   <button
@@ -325,12 +328,12 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                     Carregar Foto
                   </button>
 
-                  {avatarUrl && (
+                  {avatarUrl && avatarUrl !== DEFAULT_AVATAR && (
                     <button
                       type="button"
                       className="btn-remove-photo"
                       onClick={() => setAvatarUrl('')}
-                      title="Remover foto"
+                      title="Remover foto e voltar para silhueta padrão"
                     >
                       <Trash2 size={14} />
                     </button>
@@ -344,8 +347,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                     <button
                       key={preset.id}
                       type="button"
-                      className={`profile-preset-option ${avatarUrl === preset.url ? 'active' : ''}`}
-                      onClick={() => setAvatarUrl(preset.url)}
+                      className={`profile-preset-option ${(avatarUrl === preset.url || (!avatarUrl && preset.id === 'default-silhouette')) ? 'active' : ''}`}
+                      onClick={() => setAvatarUrl(preset.url === DEFAULT_AVATAR ? '' : preset.url)}
                       title={preset.label}
                     >
                       <img src={preset.url} alt={preset.label} className="profile-preset-img" />
@@ -367,17 +370,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
 
               <div className="badge-user-info-row">
                 <div className="badge-avatar-mini">
-                  {avatarUrl ? (
-                    <img
-                      src={resolveAvatarUrl(avatarUrl)}
-                      alt={name}
-                      onError={(e) => {
-                        e.currentTarget.src = '/images/avatars/avatar-male-agent.jpg';
-                      }}
-                    />
-                  ) : (
-                    <User size={24} color="#ffffff" />
-                  )}
+                  <img
+                    src={resolveAvatarUrl(avatarUrl)}
+                    alt={name}
+                    onError={(e) => {
+                      e.currentTarget.src = DEFAULT_AVATAR;
+                    }}
+                  />
                 </div>
                 <div>
                   <div className="badge-name">{name || 'Seu Nome'}</div>

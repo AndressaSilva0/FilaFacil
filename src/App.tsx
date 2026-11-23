@@ -43,6 +43,10 @@ export const App: React.FC = () => {
   const getUserProfileFromAuth = (): UserProfile | null => {
     const saved = authService.getCurrentUser();
     if (saved) {
+      const cleanAvatar = saved.avatarUrl && !saved.avatarUrl.includes('avatar-male-agent.jpg')
+        ? saved.avatarUrl
+        : '';
+
       return {
         name: saved.name,
         role: saved.role,
@@ -51,7 +55,7 @@ export const App: React.FC = () => {
         cpf: saved.cpf,
         phone: saved.phone || '',
         registrationNumber: saved.registrationNumber || '',
-        avatarUrl: saved.avatarUrl || '/images/avatars/avatar-male-agent.jpg',
+        avatarUrl: cleanAvatar,
       };
     }
     return null;
@@ -97,7 +101,7 @@ export const App: React.FC = () => {
       cpf: '',
       phone: '',
       registrationNumber: '',
-      avatarUrl: '/images/avatars/avatar-male-agent.jpg',
+      avatarUrl: '',
     };
   });
 
@@ -107,6 +111,9 @@ export const App: React.FC = () => {
       authService.getProfile()
         .then((p) => {
           if (p && p.name) {
+            const cleanAvatar = p.avatarUrl && !p.avatarUrl.includes('avatar-male-agent.jpg')
+              ? p.avatarUrl
+              : '';
             setUserProfile({
               name: p.name,
               role: p.role,
@@ -115,7 +122,7 @@ export const App: React.FC = () => {
               cpf: p.cpf,
               phone: p.phone || '',
               registrationNumber: p.registrationNumber || '',
-              avatarUrl: p.avatarUrl || '/images/avatars/avatar-male-agent.jpg',
+              avatarUrl: cleanAvatar,
             });
           }
         })
@@ -179,7 +186,7 @@ export const App: React.FC = () => {
       cpf: '',
       phone: '',
       registrationNumber: '',
-      avatarUrl: '/images/avatars/avatar-male-agent.jpg',
+      avatarUrl: '',
     });
     navigateTo('landing');
   };
@@ -202,6 +209,9 @@ export const App: React.FC = () => {
           onLoginSuccess={() => {
             const saved = authService.getCurrentUser();
             if (saved) {
+              const cleanAvatar = saved.avatarUrl && !saved.avatarUrl.includes('avatar-male-agent.jpg')
+                ? saved.avatarUrl
+                : '';
               setUserProfile({
                 name: saved.name,
                 role: saved.role,
@@ -210,7 +220,7 @@ export const App: React.FC = () => {
                 cpf: saved.cpf,
                 phone: saved.phone || '',
                 registrationNumber: saved.registrationNumber || '',
-                avatarUrl: saved.avatarUrl || '/images/avatars/avatar-male-agent.jpg',
+                avatarUrl: cleanAvatar,
               });
             }
             navigateTo('dashboard');

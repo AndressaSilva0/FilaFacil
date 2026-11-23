@@ -2,14 +2,24 @@
  * Utilitários para resolução e compressão de avatares do FilaFácil.
  */
 
-const DEFAULT_AVATAR = '/images/avatars/avatar-male-agent.jpg';
+/**
+ * Silhueta padrão neutra em SVG (person placeholder cinza com sombra suave) para perfis sem foto.
+ * Fornecido como Data URI nativo (100% offline, sem requisições de rede ou risco de 404).
+ */
+export const DEFAULT_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128' width='128' height='128'><circle cx='64' cy='64' r='64' fill='%23E2E8F0'/><g><circle cx='64' cy='46' r='22' fill='%2394A3B8'/><path d='M64 76 C44 76 28 92 24 114 C23 120 27 128 34 128 L94 128 C101 128 105 120 104 114 C100 92 84 76 64 76 Z' fill='%2394A3B8'/></g></svg>";
 
 /**
  * Resolve a URL completa de exibição do avatar, corrigindo caminhos relativos
  * entre Vercel (frontend) e Render (backend).
  */
 export function resolveAvatarUrl(url?: string | null): string {
-  if (!url || typeof url !== 'string' || url.trim() === '') {
+  if (
+    !url ||
+    typeof url !== 'string' ||
+    url.trim() === '' ||
+    url.includes('avatar-male-agent.jpg') ||
+    url.includes('default-avatar.svg')
+  ) {
     return DEFAULT_AVATAR;
   }
 

@@ -7,7 +7,6 @@ import {
   BarChart3,
   Clock,
   LogOut,
-  UserCircle2,
   Maximize2,
   Minimize2,
   Menu,
@@ -22,7 +21,7 @@ import Logo from './Logo';
 import CastModal from './CastModal';
 import { castService } from '../services/castService';
 import type { UserProfile } from '../pages/ProfilePage';
-import { resolveAvatarUrl } from '../utils/avatar';
+import { resolveAvatarUrl, DEFAULT_AVATAR } from '../utils/avatar';
 import '../styles/layout.css';
 
 export type InternalScreen =
@@ -94,7 +93,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
     cpf: '',
     phone: '',
     registrationNumber: '',
-    avatarUrl: '/images/avatars/avatar-male-agent.jpg',
+    avatarUrl: '',
   };
 
   // Sincroniza estado com o evento do navegador (ex: F11 ou ESC)
@@ -217,18 +216,14 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
               </div>
 
               <div className="header-avatar">
-                {profile.avatarUrl ? (
-                  <img
-                    src={resolveAvatarUrl(profile.avatarUrl)}
-                    alt={profile.name}
-                    className="header-avatar-img"
-                    onError={(e) => {
-                      e.currentTarget.src = '/images/avatars/avatar-male-agent.jpg';
-                    }}
-                  />
-                ) : (
-                  <UserCircle2 size={24} />
-                )}
+                <img
+                  src={resolveAvatarUrl(profile.avatarUrl)}
+                  alt={profile.name}
+                  className="header-avatar-img"
+                  onError={(e) => {
+                    e.currentTarget.src = DEFAULT_AVATAR;
+                  }}
+                />
               </div>
             </button>
 
@@ -237,18 +232,14 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
               <div className="profile-dropdown-menu">
                 <div className="profile-dropdown-header">
                   <div className="profile-dropdown-avatar">
-                    {profile.avatarUrl ? (
-                      <img
-                        src={resolveAvatarUrl(profile.avatarUrl)}
-                        alt={profile.name}
-                        className="profile-dropdown-avatar-img"
-                        onError={(e) => {
-                          e.currentTarget.src = '/images/avatars/avatar-male-agent.jpg';
-                        }}
-                      />
-                    ) : (
-                      <UserCircle2 size={38} color="#2563eb" />
-                    )}
+                    <img
+                      src={resolveAvatarUrl(profile.avatarUrl)}
+                      alt={profile.name}
+                      className="profile-dropdown-avatar-img"
+                      onError={(e) => {
+                        e.currentTarget.src = DEFAULT_AVATAR;
+                      }}
+                    />
                   </div>
                   <div className="profile-dropdown-info">
                     <span className="profile-dropdown-name">{profile.name}</span>
