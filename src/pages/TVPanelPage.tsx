@@ -20,6 +20,7 @@ import CastModal from '../components/CastModal';
 import { castService } from '../services/castService';
 import { tvService } from '../services/tvService';
 import { authService } from '../services/authService';
+import { normalizeUnitName } from '../utils/units';
 import '../styles/tv-panel.css';
 
 interface TVPanelPageProps {
@@ -103,6 +104,19 @@ const INITIAL_UPCOMING_TICKETS: NextTicket[] = [
 ];
 
 export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
+  const getActiveUnitName = () => {
+    try {
+      const hashQuery = window.location.hash.includes('?') ? window.location.hash.split('?')[1] : '';
+      const params = new URLSearchParams(window.location.search || hashQuery);
+      const paramUnit = params.get('unit');
+      if (paramUnit) return normalizeUnitName(paramUnit);
+      const user = authService.getCurrentUser();
+      if (user && user.unit) return normalizeUnitName(user.unit);
+    } catch {}
+    return 'UBS Centro - Dr. José Silva';
+  };
+
+  const activeUnit = getActiveUnitName();
   const [currentTime, setCurrentTime] = useState('');
   const [currentDate, setCurrentDate] = useState('');
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -425,7 +439,7 @@ export const TVPanelPage: React.FC<TVPanelPageProps> = ({ onNavigate }) => {
 
           <div className="tv-unit-badge">
             <Building2 size={18} color="#60a5fa" />
-            <span>UBS Jardim das Flores • Sala de Espera Principal</span>
+            <span>{activeUnit} • Sala de Espera Principal</span>
           </div>
         </div>
 

@@ -20,6 +20,7 @@ import {
 import type { InternalScreen } from '../components/AppLayout';
 import { authService } from '../services/authService';
 import { resolveAvatarUrl, compressImageFile, DEFAULT_AVATAR } from '../utils/avatar';
+import { normalizeUnitName } from '../utils/units';
 import '../styles/profile.css';
 
 export interface UserProfile {
@@ -47,7 +48,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   // Dados do formulário
   const [name, setName] = useState(userProfile.name);
   const [role, setRole] = useState(userProfile.role);
-  const [unit, setUnit] = useState(userProfile.unit);
+  const [unit, setUnit] = useState(normalizeUnitName(userProfile.unit));
   const [email, setEmail] = useState(userProfile.email);
   const [cpf, setCpf] = useState(userProfile.cpf);
   const [phone, setPhone] = useState(userProfile.phone);
@@ -75,7 +76,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         if (!p) return;
         if (p.name) setName(p.name);
         if (p.role) setRole(p.role);
-        if (p.unit) setUnit(p.unit);
+        if (p.unit) setUnit(normalizeUnitName(p.unit));
         if (p.email) setEmail(p.email);
         if (p.cpf) setCpf(p.cpf);
         if (p.phone) setPhone(p.phone);
@@ -88,7 +89,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         onUpdateProfile({
           name: p.name || userProfile.name,
           role: p.role || userProfile.role,
-          unit: p.unit || userProfile.unit,
+          unit: normalizeUnitName(p.unit || userProfile.unit),
           email: p.email || userProfile.email,
           cpf: p.cpf || userProfile.cpf,
           phone: p.phone || userProfile.phone,
@@ -381,7 +382,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                 <div>
                   <div className="badge-name">{name || 'Seu Nome'}</div>
                   <div className="badge-role">{role || 'Agente de Saúde'}</div>
-                  <div className="badge-unit">{unit || 'UBS Central 01'}</div>
+                  <div className="badge-unit">{normalizeUnitName(unit)}</div>
                 </div>
               </div>
 
@@ -539,12 +540,12 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                     onChange={(e) => setUnit(e.target.value)}
                     required
                   >
-                    <option value="UBS Central 01">UBS Central 01 (Posto Principal)</option>
                     <option value="UBS Centro - Dr. José Silva">UBS Centro - Dr. José Silva</option>
                     <option value="UBS Jardim das Flores">UBS Jardim das Flores</option>
                     <option value="UBS Vila Esperança">UBS Vila Esperança</option>
                     <option value="UBS São Francisco">UBS São Francisco</option>
                     <option value="UBS Santa Rita de Cássia">UBS Santa Rita de Cássia</option>
+                    <option value="UBS Central 01">UBS Central 01 (Posto Principal)</option>
                   </select>
                   <ChevronDown size={18} className="profile-select-arrow" />
                 </div>

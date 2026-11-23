@@ -12,6 +12,7 @@ import StatisticsPage from './pages/StatisticsPage';
 import HistoryPage from './pages/HistoryPage';
 import ProfilePage, { type UserProfile } from './pages/ProfilePage';
 import { authService } from './services/authService';
+import { normalizeUnitName } from './utils/units';
 
 export type AppScreen =
   | 'landing'
@@ -50,7 +51,7 @@ export const App: React.FC = () => {
       return {
         name: saved.name,
         role: saved.role,
-        unit: saved.unit || 'UBS Central 01',
+        unit: normalizeUnitName(saved.unit),
         email: saved.email,
         cpf: saved.cpf,
         phone: saved.phone || '',
@@ -117,7 +118,7 @@ export const App: React.FC = () => {
             setUserProfile({
               name: p.name,
               role: p.role,
-              unit: p.unit || 'UBS Central 01',
+              unit: normalizeUnitName(p.unit),
               email: p.email,
               cpf: p.cpf,
               phone: p.phone || '',
@@ -215,7 +216,7 @@ export const App: React.FC = () => {
               setUserProfile({
                 name: saved.name,
                 role: saved.role,
-                unit: saved.unit || 'UBS Central 01',
+                unit: normalizeUnitName(saved.unit),
                 email: saved.email,
                 cpf: saved.cpf,
                 phone: saved.phone || '',

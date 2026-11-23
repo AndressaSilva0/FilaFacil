@@ -22,6 +22,7 @@ import CastModal from './CastModal';
 import { castService } from '../services/castService';
 import type { UserProfile } from '../pages/ProfilePage';
 import { resolveAvatarUrl, DEFAULT_AVATAR } from '../utils/avatar';
+import { normalizeUnitName } from '../utils/units';
 import '../styles/layout.css';
 
 export type InternalScreen =
@@ -175,7 +176,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         <div className="top-header-center">
           <div className="header-badge-unit">
             <span className="header-badge-dot"></span>
-            Posto Ativo: UBS Central 01
+            Posto Ativo: {normalizeUnitName(profile.unit)}
           </div>
         </div>
 

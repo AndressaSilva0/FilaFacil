@@ -281,11 +281,12 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({
                     required
                   >
                     <option value="">Selecione sua unidade de atuação</option>
-                    <option value="UBS-1">UBS Centro - Dr. José Silva</option>
-                    <option value="UBS-2">UBS Jardim das Flores</option>
-                    <option value="UBS-3">UBS Vila Esperança</option>
-                    <option value="UBS-4">UBS São Francisco</option>
-                    <option value="UBS-5">UBS Santa Rita de Cássia</option>
+                    <option value="UBS Centro - Dr. José Silva">UBS Centro - Dr. José Silva</option>
+                    <option value="UBS Jardim das Flores">UBS Jardim das Flores</option>
+                    <option value="UBS Vila Esperança">UBS Vila Esperança</option>
+                    <option value="UBS São Francisco">UBS São Francisco</option>
+                    <option value="UBS Santa Rita de Cássia">UBS Santa Rita de Cássia</option>
+                    <option value="UBS Central 01">UBS Central 01 (Posto Principal)</option>
                   </select>
                   <ChevronDown size={18} className="auth-select-arrow" />
                 </div>
