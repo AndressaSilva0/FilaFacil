@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import type { InternalScreen } from '../components/AppLayout';
 import { authService } from '../services/authService';
+import { resolveAvatarUrl, compressImageFile } from '../utils/avatar';
 import '../styles/profile.css';
 
 export interface UserProfile {
@@ -67,39 +68,56 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   React.useEffect(() => {
     authService.getProfile()
       .then((p) => {
-        setName(p.name);
-        setRole(p.role);
-        setUnit(p.unit || '');
-        setEmail(p.email);
-        setCpf(p.cpf);
-        setPhone(p.phone || '');
-        setRegistrationNumber(p.registrationNumber || '');
+        if (!p) return;
+        if (p.name) setName(p.name);
+        if (p.role) setRole(p.role);
+        if (p.unit) setUnit(p.unit);
+        if (p.email) setEmail(p.email);
+        if (p.cpf) setCpf(p.cpf);
+        if (p.phone) setPhone(p.phone);
+        if (p.registrationNumber) setRegistrationNumber(p.registrationNumber);
         if (p.avatarUrl) setAvatarUrl(p.avatarUrl);
+
+        onUpdateProfile({
+          name: p.name || userProfile.name,
+          role: p.role || userProfile.role,
+          unit: p.unit || userProfile.unit,
+          email: p.email || userProfile.email,
+          cpf: p.cpf || userProfile.cpf,
+          phone: p.phone || userProfile.phone,
+          registrationNumber: p.registrationNumber || userProfile.registrationNumber,
+          avatarUrl: p.avatarUrl || userProfile.avatarUrl,
+        });
       })
-      .catch(() => {
-        // Usa dados locais se não logado
+      .catch((err) => {
+        console.warn('Usando dados da sessão ativa:', err);
       });
   }, []);
 
   // Presets rápidos de avatar com imagens temáticas de saúde pública
   const avatarPresets = [
-    { id: 'agent-male', url: '/images/avatars/avatar-male-agent.jpg', label: 'Agente Comunitário de Saúde (Hiago)' },
+    { id: 'agent-male', url: '/images/avatars/avatar-male-agent.jpg', label: 'Agente Comunitário de Saúde' },
     { id: 'doctor-female', url: '/images/avatars/avatar-female-doctor.jpg', label: 'Dra. Mariana (Médica de Família)' },
     { id: 'doctor-male', url: '/images/avatars/avatar-doctor-portrait.jpg', label: 'Dr. Roberto (Clínico Geral)' },
     { id: 'nurse-teal', url: '/images/avatars/avatar-nurse.svg', label: 'Enfermeira Chefe da Equipe' },
     { id: 'reception-specialist', url: '/images/avatars/avatar-receptionist.svg', label: 'Recepção / Triagem Humanizada' },
   ];
 
-  // Upload de arquivo de imagem real do computador
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Upload de arquivo de imagem real do computador com compressão automática
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatarUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressed = await compressImageFile(file);
+        setAvatarUrl(compressed);
+      } catch {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setAvatarUrl(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
@@ -143,11 +161,19 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
 
     try {
       let finalAvatar = avatarUrl;
+      // Se selecionou arquivo do computador, envia para backend e preserva URL segura
       if (selectedFile) {
-        finalAvatar = await authService.uploadAvatar(selectedFile);
+        try {
+          const uploadedUrl = await authService.uploadAvatar(selectedFile);
+          if (uploadedUrl) {
+            finalAvatar = uploadedUrl;
+          }
+        } catch {
+          // Mantém finalAvatar em Base64 para persistir direto no banco
+        }
       }
 
-      await authService.updateProfile({
+      const updatedUser = await authService.updateProfile({
         name,
         role,
         unit,
@@ -162,14 +188,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
 
       setIsSaving(false);
       onUpdateProfile({
-        name,
-        role,
-        unit,
-        email,
-        cpf,
-        phone,
-        registrationNumber,
-        avatarUrl: finalAvatar,
+        name: updatedUser.name || name,
+        role: updatedUser.role || role,
+        unit: updatedUser.unit || unit,
+        email: updatedUser.email || email,
+        cpf: updatedUser.cpf || cpf,
+        phone: updatedUser.phone || phone,
+        registrationNumber: updatedUser.registrationNumber || registrationNumber,
+        avatarUrl: updatedUser.avatarUrl || finalAvatar,
       });
 
       setToastMsg('Perfil, foto e dados cadastrais salvos com sucesso!');
@@ -257,7 +283,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                 <div className="profile-avatar-large-wrap">
                   <div className="profile-avatar-large-inner">
                     {avatarUrl ? (
-                      <img src={avatarUrl} alt={name} className="profile-avatar-large-img" />
+                      <img
+                        src={resolveAvatarUrl(avatarUrl)}
+                        alt={name}
+                        className="profile-avatar-large-img"
+                        onError={(e) => {
+                          e.currentTarget.src = '/images/avatars/avatar-male-agent.jpg';
+                        }}
+                      />
                     ) : (
                       <User size={54} color="#64748b" />
                     )}
@@ -335,7 +368,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
               <div className="badge-user-info-row">
                 <div className="badge-avatar-mini">
                   {avatarUrl ? (
-                    <img src={avatarUrl} alt={name} />
+                    <img
+                      src={resolveAvatarUrl(avatarUrl)}
+                      alt={name}
+                      onError={(e) => {
+                        e.currentTarget.src = '/images/avatars/avatar-male-agent.jpg';
+                      }}
+                    />
                   ) : (
                     <User size={24} color="#ffffff" />
                   )}

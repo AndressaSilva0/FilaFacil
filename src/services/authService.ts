@@ -45,9 +45,13 @@ class AuthService {
 
   public getCurrentUser(): AuthUser | null {
     const raw = localStorage.getItem(STORAGE_KEYS.USER);
-    if (!raw) return null;
+    if (!raw || raw === 'undefined' || raw === 'null' || raw.trim() === '') return null;
     try {
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && parsed.name) {
+        return parsed;
+      }
+      return null;
     } catch {
       return null;
     }
@@ -58,7 +62,7 @@ class AuthService {
   }
 
   public async login(params: LoginParams): Promise<{ user: AuthUser; token: string }> {
-    const response = await api.post<{ message: string; token: string; user: AuthUser }>('/auth/login', {
+    const response = await api.post<any>('/auth/login', {
       identifier: params.identifier || params.cpf || params.email,
       cpf: params.cpf,
       email: params.email,
@@ -66,22 +70,36 @@ class AuthService {
       rememberMe: params.rememberMe ?? true,
     });
 
-    localStorage.setItem(STORAGE_KEYS.TOKEN, response.token);
-    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(response.user));
+    const user: AuthUser = response.user || response.profile || response;
+    const token: string = response.token;
+
+    if (token) {
+      localStorage.setItem(STORAGE_KEYS.TOKEN, token);
+    }
+    if (user && typeof user === 'object') {
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+    }
     if (params.rememberMe) {
       localStorage.setItem(STORAGE_KEYS.REMEMBER, 'true');
     }
 
-    return { user: response.user, token: response.token };
+    return { user, token };
   }
 
   public async register(params: RegisterParams): Promise<{ user: AuthUser; token: string }> {
-    const response = await api.post<{ message: string; token: string; user: AuthUser }>('/auth/register', params);
+    const response = await api.post<any>('/auth/register', params);
 
-    localStorage.setItem(STORAGE_KEYS.TOKEN, response.token);
-    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(response.user));
+    const user: AuthUser = response.user || response.profile || response;
+    const token: string = response.token;
 
-    return { user: response.user, token: response.token };
+    if (token) {
+      localStorage.setItem(STORAGE_KEYS.TOKEN, token);
+    }
+    if (user && typeof user === 'object') {
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+    }
+
+    return { user, token };
   }
 
   public async forgotPassword(identifier: string): Promise<{ message: string }> {
@@ -93,15 +111,21 @@ class AuthService {
   }
 
   public async getProfile(): Promise<AuthUser> {
-    const response = await api.get<{ user: AuthUser }>('/users/profile');
-    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(response.user));
-    return response.user;
+    const response = await api.get<any>('/users/profile');
+    const user: AuthUser = response.user || response.profile || response;
+    if (user && typeof user === 'object' && user.name) {
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+    }
+    return user;
   }
 
   public async updateProfile(data: Partial<AuthUser>): Promise<AuthUser> {
-    const response = await api.put<{ message: string; user: AuthUser }>('/users/profile', data);
-    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(response.user));
-    return response.user;
+    const response = await api.put<any>('/users/profile', data);
+    const user: AuthUser = response.user || response.profile || response;
+    if (user && typeof user === 'object' && user.name) {
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+    }
+    return user;
   }
 
   public async changePassword(currentPassword: string, newPassword: string): Promise<{ message: string }> {
@@ -111,15 +135,16 @@ class AuthService {
   public async uploadAvatar(file: File): Promise<string> {
     const formData = new FormData();
     formData.append('avatar', file);
-    const response = await api.upload<{ message: string; avatarUrl: string }>('/users/avatar', formData);
+    const response = await api.upload<any>('/users/avatar', formData);
+    const avatarUrl = response.avatarUrl || response.url || '';
 
     const currentUser = this.getCurrentUser();
-    if (currentUser) {
-      currentUser.avatarUrl = response.avatarUrl;
+    if (currentUser && avatarUrl) {
+      currentUser.avatarUrl = avatarUrl;
       localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(currentUser));
     }
 
-    return response.avatarUrl;
+    return avatarUrl;
   }
 
   public logout(): void {

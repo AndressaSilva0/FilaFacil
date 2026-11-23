@@ -22,6 +22,7 @@ import Logo from './Logo';
 import CastModal from './CastModal';
 import { castService } from '../services/castService';
 import type { UserProfile } from '../pages/ProfilePage';
+import { resolveAvatarUrl } from '../utils/avatar';
 import '../styles/layout.css';
 
 export type InternalScreen =
@@ -218,9 +219,12 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
               <div className="header-avatar">
                 {profile.avatarUrl ? (
                   <img
-                    src={profile.avatarUrl}
+                    src={resolveAvatarUrl(profile.avatarUrl)}
                     alt={profile.name}
                     className="header-avatar-img"
+                    onError={(e) => {
+                      e.currentTarget.src = '/images/avatars/avatar-male-agent.jpg';
+                    }}
                   />
                 ) : (
                   <UserCircle2 size={24} />
@@ -235,9 +239,12 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                   <div className="profile-dropdown-avatar">
                     {profile.avatarUrl ? (
                       <img
-                        src={profile.avatarUrl}
+                        src={resolveAvatarUrl(profile.avatarUrl)}
                         alt={profile.name}
                         className="profile-dropdown-avatar-img"
+                        onError={(e) => {
+                          e.currentTarget.src = '/images/avatars/avatar-male-agent.jpg';
+                        }}
                       />
                     ) : (
                       <UserCircle2 size={38} color="#2563eb" />

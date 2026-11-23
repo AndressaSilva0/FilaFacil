@@ -101,6 +101,28 @@ export const App: React.FC = () => {
     };
   });
 
+  // Ao iniciar ou recarregar, sincroniza com os dados reais do perfil no banco
+  useEffect(() => {
+    if (authService.isAuthenticated()) {
+      authService.getProfile()
+        .then((p) => {
+          if (p && p.name) {
+            setUserProfile({
+              name: p.name,
+              role: p.role,
+              unit: p.unit || 'UBS Central 01',
+              email: p.email,
+              cpf: p.cpf,
+              phone: p.phone || '',
+              registrationNumber: p.registrationNumber || '',
+              avatarUrl: p.avatarUrl || '/images/avatars/avatar-male-agent.jpg',
+            });
+          }
+        })
+        .catch(() => {});
+    }
+  }, []);
+
   // Sincroniza o hash da URL quando a tela mudar, aplicando Auth Guard estrito
   const navigateTo = (screen: AppScreen) => {
     // Verificação de segurança: telas internas exigem login ativo
