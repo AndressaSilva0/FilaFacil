@@ -36,3 +36,4 @@ export function normalizeUnitName(unit?: string | null): string {
       return trimmed;
   }
 }
+
