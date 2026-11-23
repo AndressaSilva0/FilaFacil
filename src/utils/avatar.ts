@@ -103,3 +103,4 @@ export function compressImageFile(file: File, maxDimension = 320, quality = 0.85
     reader.readAsDataURL(file);
   });
 }
+

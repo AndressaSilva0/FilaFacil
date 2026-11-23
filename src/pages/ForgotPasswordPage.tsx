@@ -57,7 +57,7 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({
             <Logo variant="white" size="md" showSubtitle={false} />
             <div className="badge-sus-official">
               <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--color-green-health)' }}></span>
-              Sistema Oficial UBS / SUS
+              Plataforma FilaFácil | Gestão UBS
             </div>
           </div>
 
@@ -215,7 +215,7 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({
               </div>
 
               <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
-                LGPD Saúde • Ministério da Saúde
+                LGPD Saúde • FilaFácil UBS
               </div>
             </div>
           </div>

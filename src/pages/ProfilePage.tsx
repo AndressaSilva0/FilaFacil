@@ -359,7 +359,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             <div className="profile-badge-card">
               <div className="badge-card-header">
                 <div className="badge-sus-title">
-                  <span className="badge-sus-ministry">Ministério da Saúde • SUS</span>
+                  <span className="badge-sus-ministry">Atenção Primária à Saúde</span>
                   <span className="badge-sus-app">FilaFácil Profissional</span>
                 </div>
                 <span className="badge-sus-tag">VERIFICADO</span>

@@ -90,7 +90,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             </div>
             <div className="badge-sus-official">
               <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--color-green-health)' }}></span>
-              Sistema Oficial | UBS / SUS
+              Plataforma FilaFácil | Gestão UBS
             </div>
           </div>
 
@@ -144,7 +144,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           <div className="auth-showcase-footer">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <ShieldCheck size={16} color="var(--color-blue-ubs)" />
-              <span>Atenção Primária Humanizada • Ministério da Saúde</span>
+              <span>Atenção Primária Humanizada • FilaFácil UBS</span>
             </div>
             <div>v2.4 LTS</div>
           </div>
